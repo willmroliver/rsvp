@@ -1,0 +1,4 @@
+(executable
+ (public_name rsvp)
+ (name main)
+ (libraries rsvp))

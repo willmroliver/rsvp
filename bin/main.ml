@@ -1,0 +1,1 @@
+let () = Rsvp.Routes.start ()

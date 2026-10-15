@@ -1,0 +1,139 @@
+/* All motion lives here, and only for people who haven't asked for less */
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Cross-fade between pages: SPA feel, zero JS */
+    @view-transition {
+        navigation: auto;
+    }
+
+    /* Page content rises in, one child after another */
+    body > * > * {
+        animation: rise var(--dur-slow) var(--ease-out) backwards;
+        animation-delay: calc(min(sibling-index(), 8) * var(--stagger));
+    }
+
+    h1 {
+        animation:
+            rise var(--dur-slow) var(--ease-out) backwards,
+            shimmer var(--dur-shimmer) ease-in-out infinite alternate;
+    }
+
+    body::before {
+        animation: drift var(--dur-drift) ease-in-out infinite alternate;
+    }
+
+    :focus-visible {
+        transition: outline-offset var(--dur-fast) var(--ease-out);
+    }
+
+    :is(input, select, textarea, label) {
+        transition:
+            border-color var(--dur-fast) ease,
+            background-color var(--dur-fast) ease;
+    }
+
+    :is([type="radio"], [type="checkbox"]):checked {
+        animation: pop var(--dur-med) var(--ease-spring);
+    }
+
+    :is(button, [type="submit"], [type="button"], .button, .hover, nav a) {
+        transition:
+            translate var(--dur-slow) var(--ease-spring),
+            scale var(--dur-fast) var(--ease-out),
+            background-position var(--dur-slow) var(--ease-out),
+            box-shadow var(--dur-slow) var(--ease-out),
+            background-color var(--dur-fast) ease,
+            color var(--dur-fast) ease;
+
+        @media (hover: hover) {
+            &:hover {
+                translate: 0 calc(var(--lift) * -1);
+            }
+        }
+
+        &:active {
+            scale: var(--press);
+        }
+    }
+
+    /* <details> opens and closes smoothly instead of snapping */
+    details::details-content {
+        block-size: 0;
+        overflow: clip;
+        transition:
+            block-size var(--dur-slow) var(--ease-out),
+            content-visibility var(--dur-slow) allow-discrete;
+    }
+
+    details[open]::details-content {
+        block-size: auto;
+    }
+
+    summary::after {
+        transition: rotate var(--dur-slow) var(--ease-spring);
+    }
+
+    /* Opt-in entry effects: add a class to any element */
+    .fade-in {
+        animation: fade-in var(--dur-med) var(--ease-out) backwards;
+    }
+
+    .slide-in-top {
+        animation: slide-in-top var(--dur-slow) var(--ease-spring) backwards;
+    }
+
+    .slide-in-right {
+        animation: slide-in-right var(--dur-slow) var(--ease-spring) backwards;
+    }
+}
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        translate: 0 1rem;
+        filter: blur(4px);
+    }
+}
+
+@keyframes shimmer {
+    to {
+        background-position: 100% 0;
+    }
+}
+
+@keyframes drift {
+    to {
+        translate: 3vw 4vh;
+        scale: 1.15;
+        rotate: 6deg;
+    }
+}
+
+@keyframes pop {
+    from {
+        scale: 0.6;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes slide-in-top {
+    from {
+        opacity: 0;
+        translate: 0 -100%;
+    }
+}
+
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        translate: 100% 0;
+    }
+}

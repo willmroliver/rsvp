@@ -1,0 +1,78 @@
+/*
+  Every design knob lives here (colours live in colour.css).
+  From OCaml: Css.var "p-sm" -> var(--p-sm)
+*/
+:root {
+    /* Space: one scale; padding, margin and gap alias it so call sites read
+       clearly and each family can be retuned on its own */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 0.75rem;
+    --space-lg: 1rem;
+    --space-xl: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+    --space-2xl: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+
+    --p-xs: var(--space-xs);
+    --p-sm: var(--space-sm);
+    --p-md: var(--space-md);
+    --p-lg: var(--space-lg);
+    --p-xl: var(--space-xl);
+    --p-2xl: var(--space-2xl);
+
+    --m-xs: var(--space-xs);
+    --m-sm: var(--space-sm);
+    --m-md: var(--space-md);
+    --m-lg: var(--space-lg);
+    --m-xl: var(--space-xl);
+    --m-2xl: var(--space-2xl);
+
+    --gap-xs: var(--space-xs);
+    --gap-sm: var(--space-sm);
+    --gap-md: var(--space-md);
+    --gap-lg: var(--space-lg);
+    --gap-xl: var(--space-xl);
+    --gap-2xl: var(--space-2xl);
+
+    /* Type */
+    --font-body: "Instrument Serif", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Dancing Script", cursive;
+    --fs-sm: 0.875rem;
+    --fs-md: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    --fs-lg: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+    --fs-xl: clamp(2rem, 1.5rem + 2.5vw, 3rem);
+    --fs-2xl: clamp(2.75rem, 1.5rem + 5vw, 5rem);
+    --fw-strong: 600;
+    --lh-tight: 1.2;
+    --lh: 1.6;
+    --tracking: 0.1rem;
+
+    /* Shape */
+    --r-sm: 0.5rem;
+    --r-md: 0.875rem;
+    --r-lg: 1.3rem;
+    --r-pill: 999px;
+    --bw: 1px;
+    --outline-w: 2px;
+    --outline-offset: 3px;
+
+    /* Sizes */
+    --content-w: 50rem;
+    --nav-h: 5rem;
+    --control-h: 2.75rem;
+    --tile-min: 12rem;
+    --check: 1.1em;
+
+    /* Motion */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    /* Damped spring, ~8% overshoot */
+    --ease-spring: linear(0, 0.086, 0.279, 0.502, 0.706, 0.868, 0.981, 1.048, 1.078,
+            1.083, 1.073, 1.055, 1.037, 1.021, 1.008, 1, 0.995, 0.993, 0.994, 0.997, 1);
+    --dur-fast: 150ms;
+    --dur-med: 400ms;
+    --dur-slow: 600ms;
+    --dur-shimmer: 8s;
+    --dur-drift: 40s;
+    --stagger: 70ms;
+    --lift: 2px;
+    --press: 0.97;
+}

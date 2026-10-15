@@ -1,0 +1,374 @@
+/* ---------- Reset ---------- */
+
+/* 1. Use a more-intuitive box-sizing model */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* 2. Remove default margin (zero specificity, so any later rule wins) */
+*:where(:not(dialog)) {
+    margin: 0;
+}
+
+/* 3. Enable keyword animations */
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        interpolate-size: allow-keywords;
+    }
+}
+
+/* 4. Make `hidden` beat any display rule below */
+[hidden]:not([hidden="until-found"]) {
+    display: none !important;
+}
+
+/* 5. Improve media defaults */
+img,
+picture,
+video,
+canvas,
+svg {
+    display: block;
+    max-width: 100%;
+}
+
+/* 6. Inherit fonts for form controls */
+input,
+button,
+textarea,
+select {
+    font: inherit;
+    letter-spacing: var(--tracking);
+}
+
+/* 7. Avoid text overflows */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    overflow-wrap: break-word;
+}
+
+/* 8. Improve line wrapping */
+p {
+    text-wrap: pretty;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    text-wrap: balance;
+}
+
+/* 9. Strip list and link defaults */
+ul {
+    padding: 0;
+    list-style: none;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* ---------- Base ---------- */
+
+html {
+    scrollbar-gutter: stable;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: var(--fs-md);
+    line-height: var(--lh);
+    letter-spacing: var(--tracking);
+    -webkit-font-smoothing: antialiased;
+    isolation: isolate;
+    min-height: 100vh;
+}
+
+/* Soft pastel light behind everything */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--aurora);
+    pointer-events: none;
+}
+
+/* Anything following something gets breathing room */
+:where(main, section, article, .flow)>*+* {
+    margin-block-start: var(--flow, var(--m-lg));
+}
+
+:focus-visible {
+    outline: var(--outline-w) solid var(--focus);
+    outline-offset: var(--outline-offset);
+}
+
+/* ---------- Type ---------- */
+
+h1,
+h2,
+h3 {
+    font-family: var(--font-display);
+    font-weight: var(--fw-strong);
+    line-height: var(--lh-tight);
+}
+
+h1 {
+    inline-size: fit-content;
+    /* room for script swashes, which background-clip would otherwise cut */
+    padding-block: 0.1em;
+    padding-inline-end: 0.15em;
+    margin-block-end: var(--m-lg);
+    font-size: var(--fs-2xl);
+    background: var(--gradient) 0 0 / 200% 100%;
+    background-clip: text;
+    color: transparent;
+}
+
+h2 {
+    font-size: var(--fs-xl);
+    color: var(--accent-2);
+}
+
+h3 {
+    font-size: var(--fs-lg);
+}
+
+h4,
+h5,
+h6 {
+    font-size: var(--fs-md);
+}
+
+small,
+figcaption {
+    color: var(--text-muted);
+}
+
+hr {
+    border: 0;
+    block-size: var(--bw);
+    background: linear-gradient(90deg, transparent, var(--accent-2), transparent);
+    opacity: 0.4;
+}
+
+/* ---------- Nav ---------- */
+
+nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-xs);
+}
+
+/* Links and the theme toggle share one quiet pill style */
+nav :is(a, button, [type="submit"]) {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--control-h);
+    padding: var(--p-sm) var(--p-lg);
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: inherit;
+
+    &:hover {
+        background: var(--surface-2);
+        color: var(--text);
+        box-shadow: none;
+    }
+
+    &[aria-current="page"] {
+        background: color-mix(in oklch, var(--accent) 14%, transparent);
+        color: var(--accent);
+    }
+}
+
+/* ---------- Surfaces ---------- */
+
+:where(article, .card) {
+    padding: var(--p-2xl);
+    border: var(--bw) solid var(--border);
+    border-radius: var(--r-lg);
+    background: color-mix(in oklch, var(--surface) 70%, transparent);
+    box-shadow: var(--elevation);
+}
+
+.hover:hover {
+    box-shadow: var(--glow);
+}
+
+/* ---------- Forms ---------- */
+
+form,
+fieldset {
+    display: grid;
+    gap: var(--gap-xl);
+}
+
+fieldset {
+    min-inline-size: 0;
+    padding: 0;
+    border: 0;
+}
+
+/* Radio groups (attending / not attending) sit side by side when they fit */
+fieldset:has([type="radio"]) {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--tile-min)), 1fr));
+    gap: var(--gap-md);
+}
+
+legend {
+    padding: 0 0 var(--p-sm);
+    font-weight: var(--fw-strong);
+}
+
+/* <label>Name <input></label> stacks the text above the field */
+label {
+    display: grid;
+    gap: var(--gap-sm);
+    color: var(--text-muted);
+}
+
+:where(input:not([type="radio"], [type="checkbox"], [type="submit"], [type="button"]), select, textarea) {
+    inline-size: 100%;
+    min-block-size: var(--control-h);
+    padding: var(--p-sm) var(--p-lg);
+    border: var(--bw) solid var(--border);
+    border-radius: var(--r-md);
+    background-color: var(--surface);
+    color: var(--text);
+
+    &::placeholder {
+        color: var(--text-muted);
+        opacity: 0.6;
+    }
+
+    &:hover {
+        border-color: color-mix(in oklch, var(--accent) 40%, var(--border));
+    }
+
+    &:focus {
+        border-color: var(--accent);
+        background-color: var(--surface-2);
+    }
+
+    &:user-invalid {
+        border-color: var(--danger);
+    }
+}
+
+textarea {
+    min-block-size: calc(var(--control-h) * 2);
+    resize: vertical;
+    field-sizing: content;
+}
+
+/* Native select arrows ignore the theme; draw a chevron instead */
+select {
+    appearance: none;
+    padding-inline-end: 2.5em;
+    background-image:
+        linear-gradient(45deg, transparent 50%, currentColor 50%),
+        linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: right 1.3em center, right 1em center;
+    background-size: 0.3em 0.3em;
+    background-repeat: no-repeat;
+}
+
+/* <label><input type=radio> Joyfully accepts</label> becomes a selectable tile */
+label:has(> :is([type="radio"], [type="checkbox"])) {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-md);
+    padding: var(--p-md) var(--p-lg);
+    border: var(--bw) solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+
+    &:has(:checked) {
+        border-color: var(--accent);
+        background: color-mix(in oklch, var(--accent) 14%, var(--surface));
+    }
+}
+
+[type="radio"],
+[type="checkbox"] {
+    inline-size: var(--check);
+    block-size: var(--check);
+}
+
+:is(button, [type="submit"], [type="button"], .button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: start;
+    gap: var(--gap-sm);
+    min-block-size: var(--control-h);
+    padding: var(--p-sm) var(--p-xl);
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--gradient) 0 0 / 200% 100%;
+    color: var(--on-accent);
+    font-weight: var(--fw-strong);
+    cursor: pointer;
+
+    &:hover {
+        background-position: 100% 0;
+        box-shadow: var(--glow);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+/* ---------- Disclosure (FAQs) ---------- */
+
+details {
+    border-block-end: var(--bw) solid var(--border);
+
+    &> :last-child:not(summary) {
+        padding-block-end: var(--p-lg);
+    }
+}
+
+summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--gap-lg);
+    padding-block: var(--p-md);
+    font-weight: var(--fw-strong);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+        display: none;
+    }
+
+    &::after {
+        content: "+";
+        font-size: var(--fs-lg);
+        line-height: 1;
+        color: var(--accent);
+    }
+
+    [open]>&::after {
+        rotate: 45deg;
+    }
+}

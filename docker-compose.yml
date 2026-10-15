@@ -1,0 +1,25 @@
+name: rsvp
+
+services:
+  web:
+    build:
+      context: .
+    ports:
+      - 8080:8080
+    environment:
+      DUNE_BUILD_DIR: /usr/build/rsvp
+      DB: sqlite3:/data/rsvp/db.sqlite3
+    volumes:
+      - type: volume
+        source: db-data
+        target: /data/rsvp
+      - type: volume
+        source: build-data
+        target: /usr/build/rsvp
+      - type: bind
+        source: .
+        target: /usr/app/rsvp
+
+volumes:
+  db-data:
+  build-data:

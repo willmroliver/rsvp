@@ -1,0 +1,7 @@
+(library
+ (name rsvp)
+ (libraries dream tyxml petrol caqti-lwt.unix caqti-driver-sqlite3)
+ (preprocess
+  (pps lwt_ppx)))
+
+(include_subdirs qualified)
