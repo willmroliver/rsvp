@@ -17,7 +17,7 @@ let form ?onerr reader next (request : Dream.request) =
 
   match%lwt Dream.form request with
   | `Ok fields -> (
-      match reader fields with
+      match%lwt reader fields with
       | Ok res -> next request res
       | Error e -> onerr `Internal_Server_Error @@ Some e)
   | _ -> onerr `Bad_Request None

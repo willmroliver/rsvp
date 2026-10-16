@@ -16,20 +16,10 @@ let post_handler data =
       plus_ones = 0;
     }
     data
-  |> Result.map Core.Rsvp.rsvp
+  |> Result.map Core.Rsvp.rsvp |> Lwt.return
 
 let get ?(err = None) = fun req -> Lift.html Page.Rsvp.get req err
 
 let post =
-  Lift.form
-    ~onerr:(fun req err -> get ~err req)
-    (rsvp_decode
-       {
-         status = NotResponded;
-         arriving_from = None;
-         returning_to = None;
-         transport = Requirement.NoTransport;
-         dietary = Requirement.NoDietary;
-         plus_ones = 0;
-       })
+  Lift.form ~onerr:(fun req err -> get ~err req) post_handler
   @@ Lift.html Page.Rsvp.post

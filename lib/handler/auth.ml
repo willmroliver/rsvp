@@ -9,8 +9,10 @@ let rec post_request default fields =
   | [] -> Ok default
   | _ -> Error ()
 
-let post_handler data =
-  post_request { first_name = ""; last_name = ""; email = "" } data
-  |> Result.map Core.Auth.login
+let post_handler db data =
+  match post_request { first_name = ""; last_name = ""; email = "" } data with
+  | Ok data -> Core.Auth.login db data
+  | _ -> Lwt.return_error ()
 
-let post = Lift.form post_handler @@ Lift.html Page.Auth.post
+let post req =
+  ((Lift.form @@ post_handler (Dream.sql req)) @@ Lift.html Page.Auth.post) req

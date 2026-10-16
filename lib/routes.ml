@@ -5,7 +5,7 @@ let start () =
     | None -> "sqlite3:./data/db.sqlite3"
   in
 
-  (match Lwt_main.run (Persistence.Sql.Db.Migrate.run db_uri) with
+  (match Lwt_main.run (Persistence.Sqlite3.Migrate.run db_uri) with
   | Ok () -> ()
   | Error (`Newer_version_than_supported _) ->
       failwith "newer version than supported"
