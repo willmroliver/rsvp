@@ -23,7 +23,7 @@ let get request () =
          Forms.form ~action:"/login" ~mthd:`Post request
            [
              grid ~cols:"auto"
-               ~style:[ ("gap", Css.var "gap-lg") ]
+               ~a:[ Css.style [ ("gap", Css.var "gap-lg") ] ]
                [
                  cel ~col:"1" ~row:"1"
                    [ field ~title:"First Name" "first_name" `Text ];

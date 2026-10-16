@@ -54,23 +54,29 @@ let page request content =
            ~rows:(Css.var "nav-h" ^ " 1fr")
            [
              cel ~col:"1" ~row:"1"
-               ~style:
-                 ([
-                    Css.border (Css.var "bw");
-                    ( "background",
-                      "rgb(from " ^ Css.var "surface" ^ "r g b / 20%)" );
-                    ("backdrop-filter", "blur(4px)");
-                    ("position", "sticky");
-                    ("top", "0");
-                  ]
-                 @ cell_styles)
+               ~a:
+                 [
+                   Css.style
+                   @@ [
+                        Css.border (Css.var "bw");
+                        ( "background",
+                          "rgb(from " ^ Css.var "surface" ^ "r g b / 20%)" );
+                        ("backdrop-filter", "blur(4px)");
+                        ("position", "sticky");
+                        ("top", "0");
+                      ]
+                   @ cell_styles;
+                 ]
                [
                  Components.navbar ~flex:Components.Row
-                   ~style:
+                   ~a:
                      [
-                       Css.gap (Css.var "gap-lg");
-                       ("align-items", "center");
-                       ("height", "100%");
+                       Css.style
+                         [
+                           Css.gap (Css.var "gap-lg");
+                           ("align-items", "center");
+                           ("height", "100%");
+                         ];
                      ]
                    ~after:
                      [
@@ -101,13 +107,17 @@ let page request content =
                      ]
                    ~items:Nav.main ();
                ];
-             cel ~col:"1" ~row:"2" ~style:cell_styles
+             cel ~col:"1" ~row:"2"
+               ~a:[ Css.style cell_styles ]
                [
                  flex ~dir:Col
-                   ~style:
+                   ~a:
                      [
-                       ("margin", "0 auto");
-                       ("width", "min(100%, " ^ Css.var "content-w" ^ ")");
+                       Css.style
+                         [
+                           ("margin", "0 auto");
+                           ("width", "min(100%, " ^ Css.var "content-w" ^ ")");
+                         ];
                      ]
                    [
                      h1 [ txt "Will Oliver's Type-Safe Polymorphic RSVP Site" ];

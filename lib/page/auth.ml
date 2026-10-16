@@ -22,7 +22,7 @@ let post request { first_name; last_name; email } =
      in
 
      grid ~cols:"auto auto"
-       ~style:[ gap (var "gap-lg") ]
+       ~a:[ Css.style [ gap (var "gap-lg") ] ]
        [
          cel ~col:"1" ~row:"1" [ pill first_name ];
          cel ~col:"2" ~row:"1" [ pill last_name ];
