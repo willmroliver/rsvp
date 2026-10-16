@@ -7,12 +7,15 @@ let var v = "var(--" ^ v ^ ")"
 let margin v = ("margin", v)
 let padding v = ("padding", v)
 let rounded v = ("border-radius", v)
-let border v = ("border", v ^ " solid " ^ var "border")
 let gap v = ("gap", v)
 
 (* cosmetic *)
 let color v = ("color", v)
 let bgcolor v = ("background-color", v)
+let border v = ("border", v ^ " solid " ^ var "border")
+
+let shadow x y blur spread =
+  ("box-shadow", String.concat " " [ x; y; blur; spread ])
 
 (* layout & position *)
 let display v = ("display", v)

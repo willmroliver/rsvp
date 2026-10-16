@@ -135,8 +135,7 @@ let get request (err : Wire.decode_error option) =
                   :: acc)
             [] (Rsvp.zip fields inputs)
         in
-        els |> col ~col:"1"
-        |> grid ~cols:"auto" ~a:[ Css.style [ gap @@ var "gap-lg" ] ]);
+        els |> col ~col:"1" |> grid ~cols:"auto" ~style:[ gap @@ var "gap-lg" ]);
      ]
 
 let post request
@@ -153,7 +152,7 @@ let post request
        ]
      in
 
-     grid ~cols:"auto auto" ~a:[ Css.style [ gap @@ var "gap-lg" ] ]
+     grid ~cols:"auto auto" ~style:[ gap @@ var "gap-lg" ]
      @@ List.flatten
      @@ List.mapi
           (fun i (k, v) -> row ~row:(string_of_int (i + 1)) [ pill k; pill v ])
