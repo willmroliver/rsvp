@@ -45,11 +45,6 @@ let options ?title ?a_label ?a_select ?a_option name opts =
            opts;
     ]
 
-let btn ?a text name =
-  button
-    ~a:(match a with Some a -> a | None -> [])
-    [ txt @@ String.uppercase_ascii text ]
-
 let form ?a ?submit ?(action = "") ?(mthd = `Post) req fields =
   let csrf = Dream.csrf_token ~valid_for:86400. req in
   form
@@ -58,6 +53,22 @@ let form ?a ?submit ?(action = "") ?(mthd = `Post) req fields =
       @ match a with Some a -> a | None -> [])
     ([ input ~a:[ a_name "dream.csrf"; a_input_type `Hidden; a_value csrf ] () ]
     @ fields
+    @
+    match submit with
+    | Some el -> el
+    | None -> [ button ~a:[ a_button_type `Submit ] [ txt "SUBMIT" ] ])
+
+let event ?a ?submit ?(action = "") ?(mthd = `Post) req data =
+  let csrf = Dream.csrf_token ~valid_for:86400. req in
+  Tyxml.Html.form
+    ~a:
+      ([ a_action action; a_method mthd ]
+      @ match a with Some a -> a | None -> [])
+    ([ input ~a:[ a_name "dream.csrf"; a_input_type `Hidden; a_value csrf ] () ]
+    @ List.map
+        (fun (k, v) ->
+          input ~a:[ a_name k; a_input_type `Hidden; a_value v ] ())
+        data
     @
     match submit with
     | Some el -> el

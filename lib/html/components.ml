@@ -54,6 +54,11 @@ let flex ~dir ?style ?a =
          ]
          style a)
 
+let table ~headers ~each ?style ?a items =
+  table ~a:(make_a [] style a)
+    ~thead:(thead [ tr @@ List.map (fun h -> th [ txt h ]) headers ])
+  @@ List.map (fun item -> tr @@ each item) items
+
 type nav_item = { title : string; href : string; children : nav_item list }
 
 let item_to_el item = li [ a ~a:[ a_href item.href ] [ txt item.title ] ]

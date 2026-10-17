@@ -35,6 +35,10 @@
             background-color var(--dur-fast) ease;
     }
 
+    tbody tr {
+        transition: background-color var(--dur-fast) ease;
+    }
+
     :is([type="radio"], [type="checkbox"]):checked {
         animation: pop var(--dur-med) var(--ease-spring);
     }

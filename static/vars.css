@@ -34,8 +34,9 @@
     --gap-2xl: var(--space-2xl);
 
     /* Type */
-    --font-body: "Instrument Serif", ui-sans-serif, system-ui, sans-serif;
+    --font-body: "Lora", ui-serif, Georgia, serif;
     --font-display: "Dancing Script", cursive;
+    --fs-xs: 0.75rem;
     --fs-sm: 0.875rem;
     --fs-md: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
     --fs-lg: clamp(1.5rem, 1.3rem + 1vw, 2rem);
@@ -44,7 +45,7 @@
     --fw-strong: 600;
     --lh-tight: 1.2;
     --lh: 1.6;
-    --tracking: 0.1rem;
+    --tracking: 0.01em;
 
     /* Shape */
     --r-sm: 0.5rem;

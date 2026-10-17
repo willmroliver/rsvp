@@ -91,6 +91,8 @@
     --accent-2: var(--purple);
     --focus: var(--blue);
     --danger: var(--red);
+    --success: var(--green);
+    --info: var(--blue);
 
     --gradient: linear-gradient(100deg, var(--purple), var(--blue), var(--teal));
     --glow: 0 0.75rem 2rem -1rem color-mix(in oklch, var(--accent) 70%, transparent);

@@ -14,16 +14,16 @@ let table, Expr.[ id; first_name; last_name; email; mobile; address ] =
         field "last_name" ~constraints:[ not_null () ] ~ty:Type.text;
         field "email" ~ty:Type.text;
         field "mobile" ~ty:Type.text;
-        field "address" ~ty:Type.text;
+        field "address_id"
+          ~constraints:
+            [
+              foreign_key ~table:Address.table ~columns:[ Address.id ]
+                ~on_update:`CASCADE ();
+            ]
+          ~ty:Type.text;
       ]
 
-let id_to_int id = match id with User.UserID id -> id
-
-let show_err_or_map f res =
-  res |> Lwt.map @@ Result.map_error Caqti_error.show |> Lwt.map @@ Result.map f
-
-let decode_user =
- fun (id, (first_name, (last_name, (email, (mobile, ()))))) ->
+let decode_user (id, (first_name, (last_name, (email, (mobile, ()))))) =
   ({
      id = UserID id;
      first_name;
@@ -61,7 +61,8 @@ module Repo = struct
       ~from:table
     |> Query.where (id = i @@ User.id_to_int user_id)
     |> Request.make_one |> find db
-    |> show_err_or_map decode_user
+    |> Lwt.map (fun r ->
+        r |> Result.map_error Caqti_error.show |> Result.map decode_user)
 
   let list ~(db : db) ~off ~lim =
     Query.select
@@ -70,7 +71,10 @@ module Repo = struct
     |> Query.offset @@ i off
     |> Query.limit @@ i lim
     |> Request.make_many |> collect_list db
-    |> show_err_or_map @@ List.map decode_user
+    |> Lwt.map (fun r ->
+        r
+        |> Result.map_error Caqti_error.show
+        |> Result.map @@ List.map decode_user)
 
   let delete ~(db : db) user_id =
     Query.delete ~from:table

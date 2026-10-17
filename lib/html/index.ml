@@ -35,7 +35,7 @@ let page request content =
          preconnect "https://fonts.gstatic.com" ~a:[ a_crossorigin `Anonymous ];
          stylesheet
            ("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&"
-          ^ "family=Instrument+Serif:ital@0;1&display=swap");
+          ^ "family=Lora:ital,wght@0,400..700;1,400..700&display=swap");
        ])
     (let theme = Theme.from_session request in
      let cell_styles = [ Css.padding (Css.var "p-lg") ] in

@@ -337,6 +337,94 @@ label:has(> :is([type="radio"], [type="checkbox"])) {
     }
 }
 
+/* ---------- Tones ---------- */
+
+/* Solid role colour with readable text: on-accent flips light/dark per scheme.
+   Declared after buttons so a tone replaces the default gradient */
+.accent {
+    --tone: var(--accent);
+}
+
+.success {
+    --tone: var(--success);
+}
+
+.danger {
+    --tone: var(--danger);
+}
+
+.info {
+    --tone: var(--info);
+}
+
+:is(.accent, .success, .danger, .info) {
+    background: var(--tone);
+    color: var(--on-accent);
+
+    &:is(button, [type="submit"], [type="button"], .button):hover {
+        box-shadow: 0 0.75rem 2rem -1rem color-mix(in oklch, var(--tone) 70%, transparent);
+    }
+}
+
+/* ---------- Tables ---------- */
+
+/* A card that holds rows: separate borders so the corners can round */
+table {
+    inline-size: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: var(--bw) solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: clip;
+    background: color-mix(in oklch, var(--surface) 70%, transparent);
+    box-shadow: var(--elevation);
+}
+
+caption {
+    padding-block-end: var(--p-sm);
+    color: var(--text-muted);
+    text-align: start;
+}
+
+:is(th, td) {
+    padding: var(--p-md) var(--p-lg);
+    text-align: start;
+    vertical-align: top;
+    /* long emails wrap instead of pushing the table off a phone screen */
+    overflow-wrap: anywhere;
+}
+
+th {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-strong);
+    text-transform: uppercase;
+}
+
+/* Hairlines between rows, none under the last */
+tr:not(:last-child) > td,
+thead th {
+    border-block-end: var(--bw) solid var(--border);
+}
+
+tbody tr:hover {
+    background: color-mix(in oklch, var(--accent) 8%, transparent);
+}
+
+/* Buttons in cells are compact row actions; a wrapping form sits inline */
+:is(td, th) :is(button, [type="submit"], [type="button"], .button) {
+    min-block-size: auto;
+    padding: var(--p-xs) var(--p-md);
+    gap: var(--gap-xs);
+    font-size: var(--fs-sm);
+}
+
+:is(td, th) form {
+    display: inline-flex;
+    gap: var(--gap-xs);
+}
+
 /* ---------- Disclosure (FAQs) ---------- */
 
 details {
