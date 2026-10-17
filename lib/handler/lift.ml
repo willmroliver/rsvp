@@ -1,24 +1,27 @@
-let ( >> ) f g x = g @@ f x
+let _err request onerr =
+ fun status e ->
+  match onerr with Some next -> next request e | None -> Dream.empty status
 
-let using decoder next (entry : 'e -> (string * 'a) list) (exit : 'd -> 'f)
-    (lift : ((string * 'a) list -> ('b, 'c) result) -> ('b -> 'd) -> 'e -> 'f) =
-  lift decoder next
+let query ?onerr reader core writer (request : Dream.request) =
+  let onerr = _err request onerr in
 
-let identity reader response (request : Dream.request) =
-  match reader request with
-  | Ok res -> response res
-  | _ -> Dream.empty `Bad_Request
+  match reader @@ Dream.all_queries request with
+  | Ok data -> (
+      match%lwt Dream.sql request (fun db -> core db data) with
+      | Ok res -> writer request res
+      | Error e -> onerr `Internal_Server_Error @@ Some e)
+  | Error e -> onerr `Internal_Server_Error @@ Some e
 
-let form ?onerr reader next (request : Dream.request) =
-  let onerr =
-   fun status e ->
-    match onerr with Some next -> next request e | None -> Dream.empty status
-  in
+let form ?onerr reader core writer (request : Dream.request) =
+  let onerr = _err request onerr in
 
   match%lwt Dream.form request with
   | `Ok fields -> (
-      match%lwt reader fields with
-      | Ok res -> next request res
+      match reader fields with
+      | Ok data -> (
+          match%lwt Dream.sql request (fun db -> core db data) with
+          | Ok res -> writer request res
+          | Error e -> onerr `Internal_Server_Error @@ Some e)
       | Error e -> onerr `Internal_Server_Error @@ Some e)
   | _ -> onerr `Bad_Request None
 

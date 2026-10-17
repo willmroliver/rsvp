@@ -1,6 +1,6 @@
 open Domain.Rsvp
 
-let rsvp
+let rsvp db
     ({ status; arriving_from; returning_to; transport; dietary; plus_ones } :
       rsvp) =
   { status; arriving_from; returning_to; transport; dietary; plus_ones }

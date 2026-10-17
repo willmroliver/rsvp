@@ -1,11 +1,11 @@
 open Domain
 open Core.Rsvp
 open Domain.Rsvp
-open Wire.Form.Rsvp
+open Wire.Strings.Rsvp
 
 let fields = map (fun (_, name) -> name) Page.Rsvp.fields
 
-let post_handler data =
+let post_request =
   rsvp_decode
     {
       status = NotResponded;
@@ -15,11 +15,10 @@ let post_handler data =
       dietary = Requirement.NoDietary;
       plus_ones = 0;
     }
-    data
-  |> Result.map Core.Rsvp.rsvp |> Lwt.return
 
+let post_handler db data = Core.Rsvp.rsvp db data |> Lwt.return_ok
 let get ?(err = None) = fun req -> Lift.html Page.Rsvp.get req err
 
 let post =
-  Lift.form ~onerr:(fun req err -> get ~err req) post_handler
+  Lift.form ~onerr:(fun req err -> get ~err req) post_request post_handler
   @@ Lift.html Page.Rsvp.post

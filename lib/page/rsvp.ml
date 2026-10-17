@@ -1,6 +1,7 @@
 open Core.Rsvp
 open Domain
-module Wire = Wire.Form.Rsvp
+open Wire.Strings.Error
+module Wire = Wire.Strings.Rsvp
 
 let fields =
   Rsvp.zip
@@ -101,13 +102,13 @@ let pill text =
       ]
     [ txt text ]
 
-let with_err name (err : Wire.decode_error option) =
+let with_err name (err : decode_error option) =
   match err with
-  | Some (Wire.BadField (field, _)) when String.equal field name ->
+  | Some (BadField (field, _)) when String.equal field name ->
       [ ("box-shadow", "0 0 2px 1px " ^ var "red"); color @@ var "red" ]
   | _ -> []
 
-let get request (err : Wire.decode_error option) =
+let get request (err : decode_error option) =
   Index.index request @@ Forms.form request
   @@ [
        (let els =

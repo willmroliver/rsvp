@@ -1,11 +1,6 @@
 open Core.Rsvp
 open Domain
-
-type decode_error =
-  | BadValue of string
-  | BadField of (string * string)
-  | MissingRequired of string
-  | Unknown
+open Error
 
 let status_decode = function
   | "" | "not_responded" -> Ok Rsvp.NotResponded

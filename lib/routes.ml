@@ -24,6 +24,8 @@ let start () =
          (* auth *)
          Dream.get "/login" Handler.Home.get;
          Dream.post "/login" Handler.Auth.post;
+         (* admin *)
+         Dream.get "/admin/users" Handler.Admin.Users.list;
          (* rsvp *)
          Dream.get "/rsvp" Handler.Rsvp.get;
          Dream.post "/rsvp" Handler.Rsvp.post;

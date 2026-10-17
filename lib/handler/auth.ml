@@ -1,3 +1,5 @@
+open Persistence.Sqlite3
+
 let rec post_request default fields =
   let open Core.Auth in
   match fields with
@@ -7,12 +9,12 @@ let rec post_request default fields =
       post_request { default with last_name } fields
   | ("email", email) :: fields -> post_request { default with email } fields
   | [] -> Ok default
-  | _ -> Error ()
+  | _ -> Error "unexpected form data"
 
-let post_handler db data =
-  match post_request { first_name = ""; last_name = ""; email = "" } data with
-  | Ok data -> Core.Auth.login db data
-  | _ -> Lwt.return_error ()
+module Auth = Core.Auth.Make (Db.User.Repo)
 
-let post req =
-  ((Lift.form @@ post_handler (Dream.sql req)) @@ Lift.html Page.Auth.post) req
+let post =
+  Lift.form
+    (post_request { first_name = ""; last_name = ""; email = "" })
+    Auth.login
+  @@ Lift.html Page.Auth.post

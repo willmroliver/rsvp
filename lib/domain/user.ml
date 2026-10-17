@@ -1,5 +1,7 @@
 type user_id = UserID of int
 
+let id_to_int id = match id with UserID id -> id
+
 type 'a dict = {
   id : 'a;
   first_name : 'a;
