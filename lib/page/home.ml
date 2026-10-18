@@ -2,8 +2,8 @@ open Tyxml.Html
 open Html
 open Html.Components
 
-let get request () =
-  Index.index request
+let get ctx () =
+  Index.index ctx
     (let field =
        Forms.field
          ~a_label:[ Css.style @@ [ Css.padding "0" ] ]
@@ -20,7 +20,7 @@ let get request () =
      in
      flex ~dir:Col
        [
-         Forms.form ~action:"/login" ~mthd:`Post request
+         Forms.form ~action:"/login" ~mthd:`Post ~csrf:ctx.csrf
            [
              grid ~cols:"auto"
                ~style:[ ("gap", Css.var "gap-lg") ]

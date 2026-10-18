@@ -6,7 +6,7 @@ type decode_error =
 
 let decode_error_to_string e =
   match e with
-  | BadValue s -> s
-  | BadField (s, t) -> String.concat ", " [ s; t ]
-  | MissingRequired s -> s
-  | Unknown -> "unknown"
+  | BadValue s -> "Bad Value: " ^ s
+  | BadField (s, t) -> "Bad Field: " ^ String.concat ", " [ s; t ]
+  | MissingRequired s -> "Missing Required: " ^ s
+  | Unknown -> "Unknown"

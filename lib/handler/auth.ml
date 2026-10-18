@@ -1,7 +1,8 @@
 open Persistence.Sqlite3
+open Common
+open Core.Auth
 
-let rec post_request default fields =
-  let open Core.Auth in
+let rec post_request (default : args) fields =
   match fields with
   | ("first_name", first_name) :: fields ->
       post_request { default with first_name } fields
@@ -11,10 +12,10 @@ let rec post_request default fields =
   | [] -> Ok default
   | _ -> Error "unexpected form data"
 
-module Auth = Core.Auth.Make (Db.User.Repo)
+module Auth = Make (Db.User.Repo)
 
 let post =
-  Lift.form
+  In.form
     (post_request { first_name = ""; last_name = ""; email = "" })
     Auth.login
-  @@ Lift.html Page.Auth.post
+  @@ Out.html Page.Auth.post

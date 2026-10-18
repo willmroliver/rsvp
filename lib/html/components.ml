@@ -54,10 +54,27 @@ let flex ~dir ?style ?a =
          ]
          style a)
 
-let table ~headers ~each ?style ?a items =
-  table ~a:(make_a [] style a)
-    ~thead:(thead [ tr @@ List.map (fun h -> th [ txt h ]) headers ])
-  @@ List.map (fun item -> tr @@ each item) items
+let cell ?a content = td ?a [ div ~a:[ a_class [ "cell" ] ] content ]
+
+let table ~headers ~each ?pin_last ?style ?a items =
+  div
+    ~a:
+      [
+        (a_class @@ [ "table-scroll" ]
+        @ if Option.value ~default:false pin_last then [ "pin-last" ] else []);
+      ]
+    [
+      table ~a:(make_a [] style a)
+        ~thead:
+          (thead
+             [
+               tr
+               @@ List.map
+                    (fun h -> th [ div ~a:[ a_class [ "cell" ] ] [ txt h ] ])
+                    headers;
+             ])
+      @@ List.map (fun item -> tr @@ each item) items;
+    ]
 
 type nav_item = { title : string; href : string; children : nav_item list }
 

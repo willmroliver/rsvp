@@ -1,5 +1,6 @@
 open Tyxml.Html
 open Core.Admin
+open Common
 open Domain
 open User
 open Html
@@ -7,25 +8,25 @@ open Css
 open Components
 open Forms
 
-let user_to_row req user =
+let user_to_row ctx user =
   let user_id = string_of_int @@ User.id_to_int user.id in
   [
-    td [ txt user_id ];
-    td [ txt user.first_name ];
-    td [ txt user.last_name ];
-    td [ txt @@ Option.fold ~none:"" ~some:Contact.email_to_string user.email ];
-    td
+    cell [ txt user_id ];
+    cell [ txt user.first_name ];
+    cell [ txt user.last_name ];
+    cell
+      [ txt @@ Option.fold ~none:"" ~some:Contact.email_to_string user.email ];
+    cell
       [ txt @@ Option.fold ~none:"" ~some:Contact.mobile_to_string user.mobile ];
-    td
+    cell
       ~a:[ Css.style [ ("text-align", "right") ] ]
       [
         flex ~dir:Row
           ~style:[ Css.gap @@ Css.var "gap-sm" ]
           [
-            event
-              ~submit:[ button [ icon "eye-outline" ] ]
-              ~action:(Dream.target req ^ "/" ^ user_id)
-              req [];
+            link
+              ~path:(Context.path ctx [ user_id ])
+              [ button [ icon "eye-outline" ] ];
             event
               ~submit:
                 [
@@ -33,17 +34,63 @@ let user_to_row req user =
                     ~a:[ a_class [ "danger" ] ]
                     [ icon "trash-can-outline" ];
                 ]
-              ~action:(Dream.target req ^ "/" ^ user_id)
-              req
+              ~action:(Context.path ctx [ user_id ])
+              ~csrf:ctx.csrf
               [ ("id", user_id); ("action", "delete") ];
           ];
       ];
   ]
 
-let get request { n; users } =
-  let each = user_to_row request in
-  Index.index request
-    (table
+let list ctx { n; users } =
+  let each = user_to_row ctx in
+  Index.index ctx
+    (table ~pin_last:true
+       ~style:[ ("background", Css.alpha ~alpha:".8" "surface") ]
        ~headers:
          [ "ID"; "First Name"; "Last Name"; "Email"; "Mobile"; "Actions" ]
        ~each users)
+
+let get ctx user =
+  let open Css in
+  let style =
+    [
+      padding @@ var "p-md";
+      rounded @@ var "r-md";
+      border "1px";
+      ("background", alpha ~alpha:".92" "surface");
+    ]
+  in
+
+  let open Ctrl in
+  Editor.make
+    ~toggle:[ Editor.off [ icon "pencil" ]; Editor.on [ icon "eye-outline" ] ]
+    [
+      grid ~cols:"auto auto" ~rows:"auto" ~style:[ gap @@ var "gap-lg" ]
+      @@ col ~col:"1" ~style
+           [ txt "First Name"; txt "Last Name"; txt "Email"; txt "Mobile" ]
+      @ [
+          Editor.off
+          @@ col ~col:"2" ~style
+               [
+                 txt user.first_name;
+                 txt user.last_name;
+                 txt
+                 @@ Option.fold ~none:"" ~some:Contact.email_to_string
+                      user.email;
+                 txt
+                 @@ Option.fold ~none:"" ~some:Contact.mobile_to_string
+                      user.mobile;
+               ];
+          Editor.on
+          @@ col ~col:"2"
+               [
+                 Forms.field
+                   ~a_input:[ a_value user.first_name ]
+                   ~title:"First Name" "first_name" `Text;
+                 Forms.field ~title:"Last Name" "last_name" `Text;
+                 Forms.field ~title:"Email" "email" `Email;
+                 Forms.field ~title:"Mobile" "email" `Tel;
+               ];
+        ];
+    ]
+  |> Index.index ctx

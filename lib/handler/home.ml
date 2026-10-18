@@ -1,1 +1,3 @@
-let get = fun req -> Lift.html Page.Home.get req ()
+open Common
+
+let get = fun req -> Out.html Page.Home.get req ()

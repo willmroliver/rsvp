@@ -1,3 +1,11 @@
+let rec params ?(data = []) keys handler request =
+  match keys with
+  | param :: keys ->
+      params
+        ~data:((param, Dream.param request param) :: data)
+        keys handler request
+  | [] -> handler data request
+
 let start () =
   let db_uri =
     match Sys.getenv_opt "DB" with
@@ -13,7 +21,7 @@ let start () =
 
   Dream.run ~interface:"0.0.0.0" ~port:8080
   @@ Dream.sql_pool db_uri @@ Dream.logger @@ Dream.memory_sessions
-  @@ Theme.middleware
+  @@ Ctrl.Theme.middleware
   @@ Dream.router
        [
          (* static *)
@@ -26,15 +34,10 @@ let start () =
          Dream.post "/login" Handler.Auth.post;
          (* admin *)
          Dream.get "/admin/users" Handler.Admin.Users.list;
+         Dream.get "/admin/users/:id" @@ params [ "id" ] Handler.Admin.Users.get;
          (* rsvp *)
          Dream.get "/rsvp" Handler.Rsvp.get;
          Dream.post "/rsvp" Handler.Rsvp.post;
          (* ctrl *)
          Dream.post "/theme" (fun req -> Dream.redirect req (Dream.target req));
-         Dream.get "/param/:of" (fun req -> Dream.html (Dream.param req "of"));
-         Dream.post "/echo" (fun req ->
-             let%lwt body = Dream.body req in
-             Dream.respond
-               ~headers:[ ("Content-Type", "application/octet-stream") ]
-               body);
        ]

@@ -1,4 +1,5 @@
 open Tyxml.Html
+open Common.Context
 
 let ln a rel href =
   match a with
@@ -9,8 +10,9 @@ let stylesheet ?a href = ln a `Stylesheet href
 let preconnect ?a href = ln a `Preconnect href
 let google_font href = link ~href ~rel:[ `Stylesheet ] ()
 
-let page request content =
+let page ctx content =
   let open Tyxml.Html in
+  let open Html in
   let open Components in
   html
     ~a:[ a_lang "en-GB" ]
@@ -30,6 +32,7 @@ let page request content =
          stylesheet "/static/colour.css";
          stylesheet "/static/style.css";
          stylesheet "/static/vars.css";
+         stylesheet "/static/ctrl.css";
          stylesheet "/mdi/css/materialdesignicons.min.css";
          preconnect "https://fonts.googleapis.com";
          preconnect "https://fonts.gstatic.com" ~a:[ a_crossorigin `Anonymous ];
@@ -37,19 +40,11 @@ let page request content =
            ("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&"
           ^ "family=Lora:ital,wght@0,400..700;1,400..700&display=swap");
        ])
-    (let theme = Theme.from_session request in
-     let cell_styles = [ Css.padding (Css.var "p-lg") ] in
+    (let cell_styles = [ Css.padding (Css.var "p-lg") ] in
      body
        [
-         input
-           ~a:
-             [
-               a_input_type `Checkbox;
-               a_hidden `Hidden;
-               a_id ("theme-" ^ Theme.theme_to_str theme);
-               a_checked ();
-             ]
-           ();
+         Ctrl.Theme.input ctx.theme ();
+         Ctrl.Editor.state ();
          grid ~cols:"1fr"
            ~rows:(Css.var "nav-h" ^ " 1fr")
            [
@@ -57,13 +52,10 @@ let page request content =
                ~style:
                  ([
                     Css.border (Css.var "bw");
-                    ( "background",
-                      "rgb(from " ^ Css.var "surface" ^ "r g b / 20%)" );
-                    ("backdrop-filter", "blur(4px)");
                     ("position", "sticky");
                     ("top", "0");
                   ]
-                 @ cell_styles)
+                 @ cell_styles @ Css.glass "surface")
                [
                  Components.navbar ~flex:Components.Row
                    ~style:
@@ -75,7 +67,7 @@ let page request content =
                    ~after:
                      [
                        (let v, icon =
-                          match theme with
+                          match ctx.theme with
                           | Light -> ("dark", "weather-sunny")
                           | _ -> ("light", "weather-night")
                         in
@@ -87,7 +79,7 @@ let page request content =
                                 ~a:[ a_button_type `Submit ]
                                 [ Components.icon ~size:"md" icon ];
                             ]
-                          request
+                          ~csrf:ctx.csrf
                           [
                             input
                               ~a:
@@ -110,7 +102,16 @@ let page request content =
                        ("width", "min(100%, " ^ Css.var "content-w" ^ ")");
                      ]
                    [
-                     h1 [ txt "Will Oliver's Type-Safe Polymorphic RSVP Site" ];
+                     h1
+                       ~a:
+                         [
+                           (Css.style
+                           @@ [ ("z-index", "-1") ]
+                           @
+                           if String.equal ctx.target "/" then []
+                           else [ Css.position "absolute" ]);
+                         ]
+                       [ txt "Will Oliver's Type-Safe Polymorphic RSVP Site" ];
                      content;
                    ];
                ];
@@ -118,4 +119,4 @@ let page request content =
        ])
 
 let html_to_str html = Format.asprintf "%a" (Tyxml.Html.pp ()) html
-let index request content = html_to_str @@ page request content
+let index ctx content = html_to_str @@ page ctx content

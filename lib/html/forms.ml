@@ -45,8 +45,7 @@ let options ?title ?a_label ?a_select ?a_option name opts =
            opts;
     ]
 
-let form ?a ?submit ?(action = "") ?(mthd = `Post) req fields =
-  let csrf = Dream.csrf_token ~valid_for:86400. req in
+let form ?a ?submit ?(action = "") ?(mthd = `Post) ~csrf fields =
   form
     ~a:
       ([ a_action action; a_method mthd ]
@@ -58,8 +57,7 @@ let form ?a ?submit ?(action = "") ?(mthd = `Post) req fields =
     | Some el -> el
     | None -> [ button ~a:[ a_button_type `Submit ] [ txt "SUBMIT" ] ])
 
-let event ?a ?submit ?(action = "") ?(mthd = `Post) req data =
-  let csrf = Dream.csrf_token ~valid_for:86400. req in
+let event ?a ?submit ?(action = "") ?(mthd = `Post) ~csrf data =
   Tyxml.Html.form
     ~a:
       ([ a_action action; a_method mthd ]
@@ -73,3 +71,12 @@ let event ?a ?submit ?(action = "") ?(mthd = `Post) req data =
     match submit with
     | Some el -> el
     | None -> [ button ~a:[ a_button_type `Submit ] [ txt "SUBMIT" ] ])
+
+let link ?a ?query ~path els =
+  let query =
+    match query with
+    | Some query ->
+        "?" ^ String.concat "," @@ List.map (fun (k, v) -> k ^ "=" ^ v) query
+    | None -> ""
+  in
+  Tyxml.Html.a ~a:([ a_href @@ path ^ query ] @ Option.value ~default:[] a) els

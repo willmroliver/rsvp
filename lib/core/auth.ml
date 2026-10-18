@@ -1,8 +1,8 @@
 open Domain
 open User
 
-type login_request = { first_name : string; last_name : string; email : string }
-type login_response = login_request
+type args = { first_name : string; last_name : string; email : string }
+type auth = { first_name : string; last_name : string; email : string }
 
 module type UserRepo = sig
   type db
@@ -14,7 +14,7 @@ module type UserRepo = sig
 end
 
 module Make (UserRepo : UserRepo) = struct
-  let login db { first_name; last_name; email } =
+  let login db ({ first_name; last_name; email } : args) =
     UserRepo.insert ~db
       {
         id = UserID 0;
@@ -26,9 +26,10 @@ module Make (UserRepo : UserRepo) = struct
       }
     |> Lwt.map @@ Result.map
        @@ fun () ->
-       {
-         first_name = String.uppercase_ascii first_name;
-         last_name = String.uppercase_ascii last_name;
-         email = String.uppercase_ascii email;
-       }
+       ({
+          first_name = String.uppercase_ascii first_name;
+          last_name = String.uppercase_ascii last_name;
+          email = String.uppercase_ascii email;
+        }
+         : auth)
 end

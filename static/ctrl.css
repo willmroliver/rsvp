@@ -1,0 +1,4 @@
+:root:not(:has(#edit:checked)) .editor .on,
+:root:has(#edit:checked) .editor .off {
+    display: none !important;
+}

@@ -4,8 +4,8 @@ open Html
 open Html.Components
 open Html.Css
 
-let post request { first_name; last_name; email } =
-  Index.index request
+let post ctx { first_name; last_name; email } =
+  Index.index ctx
     (let pill text =
        div
          ~a:

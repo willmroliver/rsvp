@@ -108,8 +108,8 @@ let with_err name (err : decode_error option) =
       [ ("box-shadow", "0 0 2px 1px " ^ var "red"); color @@ var "red" ]
   | _ -> []
 
-let get request (err : decode_error option) =
-  Index.index request @@ Forms.form request
+let get ctx (err : decode_error option) =
+  Index.index ctx @@ Forms.form ~csrf:ctx.csrf
   @@ [
        (let els =
           Rsvp.fold
@@ -139,10 +139,10 @@ let get request (err : decode_error option) =
         els |> col ~col:"1" |> grid ~cols:"auto" ~style:[ gap @@ var "gap-lg" ]);
      ]
 
-let post request
+let post ctx
     ({ status; arriving_from; returning_to; transport; dietary; plus_ones } :
       Rsvp.rsvp) =
-  Index.index request
+  Index.index ctx
     (let fields =
        [
          ("Status", status_to_display status);

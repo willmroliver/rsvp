@@ -20,7 +20,6 @@
             rise var(--dur-slow) var(--ease-out) backwards,
             shimmer var(--dur-shimmer) ease-in-out infinite alternate;
     }
-
     body::before {
         animation: drift var(--dur-drift) ease-in-out infinite alternate;
     }

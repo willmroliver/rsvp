@@ -9,10 +9,19 @@ let padding v = ("padding", v)
 let rounded v = ("border-radius", v)
 let gap v = ("gap", v)
 
-(* cosmetic *)
+(* colour *)
 let color v = ("color", v)
 let bgcolor v = ("background-color", v)
 let border v = ("border", v ^ " solid " ^ var "border")
+
+let alpha ?(alpha = "20%") hex_var =
+  "rgb(from " ^ var hex_var ^ "r g b / " ^ alpha ^ ")"
+
+let glass ?(blur = "4px") ?(opacity = "20%") hex_var =
+  [
+    ("background", alpha ~alpha:opacity hex_var);
+    ("backdrop-filter", "blur(" ^ blur ^ ")");
+  ]
 
 let shadow x y blur spread =
   ("box-shadow", String.concat " " [ x; y; blur; spread ])
