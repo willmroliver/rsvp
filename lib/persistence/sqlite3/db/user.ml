@@ -3,7 +3,7 @@ open Petrol
 open Petrol.Sqlite3
 open Lwt.Syntax
 
-let table, Expr.[ id; first_name; last_name; email; mobile; address ] =
+let table, Expr.[ id; first_name; last_name; email; mobile; address_id ] =
   VersionedSchema.declare_table Version.schema ~name:"user"
     Schema.
       [
@@ -32,7 +32,7 @@ let decode_user (id, (first_name, (last_name, (email, (mobile, ()))))) =
        Option.bind email (fun v -> Contact.parse_email v |> Result.to_option);
      mobile =
        Option.bind mobile (fun v -> Contact.parse_mobile v |> Result.to_option);
-     address = None;
+     address_id = None;
    }
     : User.user)
 
@@ -75,6 +75,21 @@ module Repo = struct
         r
         |> Result.map_error Caqti_error.show
         |> Result.map @@ List.map decode_user)
+
+  let update ~(db : db) (user : User.user) =
+    Query.update ~table
+      ~set:
+        [
+          first_name := s user.first_name;
+          last_name := s user.last_name;
+          Option.map Contact.email_to_string user.email
+          |> Option.fold ~none:(unset email) ~some:(fun v -> email := s v);
+          Option.map Contact.mobile_to_string user.mobile
+          |> Option.fold ~none:(unset mobile) ~some:(fun v -> mobile := s v);
+        ]
+    |> Query.where (id = i @@ User.id_to_int user.id)
+    |> Request.make_zero |> exec db
+    |> Lwt.map @@ Result.map_error Caqti_error.show
 
   let delete ~(db : db) user_id =
     Query.delete ~from:table

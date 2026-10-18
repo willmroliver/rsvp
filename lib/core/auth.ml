@@ -22,7 +22,7 @@ module Make (UserRepo : UserRepo) = struct
         last_name;
         email = Result.to_option @@ Contact.parse_email email;
         mobile = None;
-        address = None;
+        address_id = None;
       }
     |> Lwt.map @@ Result.map
        @@ fun () ->

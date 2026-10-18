@@ -79,40 +79,34 @@ let fields : string Rsvp.dict =
 
 open Domain.Rsvp
 
-let rec rsvp_decode default = function
+let rec decode default = function
   | (name, v) :: tail when name = fields.status -> (
       match status_decode v with
-      | Ok status -> rsvp_decode { default with status } tail
+      | Ok status -> decode { default with status } tail
       | Error _ -> Error (BadField (name, v)))
   | (name, v) :: tail when name = fields.arriving_from -> (
       match city_decode v with
       | Ok city ->
-          rsvp_decode
-            { default with arriving_from = Some (Location.City city) }
-            tail
-      | Error (BadValue "") ->
-          rsvp_decode { default with arriving_from = None } tail
+          decode { default with arriving_from = Some (Location.City city) } tail
+      | Error (BadValue "") -> decode { default with arriving_from = None } tail
       | Error _ -> Error (BadField (name, v)))
   | (name, v) :: tail when name = fields.returning_to -> (
       match city_decode v with
       | Ok city ->
-          rsvp_decode
-            { default with returning_to = Some (Location.City city) }
-            tail
-      | Error (BadValue "") ->
-          rsvp_decode { default with returning_to = None } tail
+          decode { default with returning_to = Some (Location.City city) } tail
+      | Error (BadValue "") -> decode { default with returning_to = None } tail
       | Error _ -> Error (BadField (name, v)))
   | (name, v) :: tail when name = fields.transport -> (
       match transport_decode v with
-      | Ok transport -> rsvp_decode { default with transport } tail
+      | Ok transport -> decode { default with transport } tail
       | Error _ -> Error (BadField (name, v)))
   | (name, v) :: tail when name = fields.dietary -> (
       match dietary_decode v with
-      | Ok dietary -> rsvp_decode { default with dietary } tail
+      | Ok dietary -> decode { default with dietary } tail
       | Error _ -> Error (BadField (name, v)))
   | (name, v) :: tail when name = fields.plus_ones -> (
       match int_of_string_opt v with
-      | Some plus_ones -> rsvp_decode { default with plus_ones } tail
+      | Some plus_ones -> decode { default with plus_ones } tail
       | None -> Error (BadField (name, v)))
   | (name, v) :: fields -> Error (BadField (name, v))
   | [] -> Ok default

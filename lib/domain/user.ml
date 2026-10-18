@@ -8,7 +8,7 @@ type 'a dict = {
   last_name : 'a;
   email : 'a;
   mobile : 'a;
-  address : 'a;
+  address_id : 'a;
 }
 
 type user = {
@@ -17,20 +17,31 @@ type user = {
   last_name : string;
   email : Contact.email option;
   mobile : Contact.mobile option;
-  address : Location.address option;
+  address_id : Location.address_id option;
 }
 
-let fold f acc ({ id; first_name; last_name; email; mobile; address } : 'a dict)
-    =
-  List.fold_right f [ id; first_name; last_name; email; mobile; address ] acc
+let fold f acc
+    ({ id; first_name; last_name; email; mobile; address_id } : 'a dict) =
+  List.fold_right f [ id; first_name; last_name; email; mobile; address_id ] acc
 
-let map f ({ id; first_name; last_name; email; mobile; address } : 'a dict) =
+let map f ({ id; first_name; last_name; email; mobile; address_id } : 'a dict) =
   ({
      id = f id;
      first_name = f first_name;
      last_name = f last_name;
      email = f email;
      mobile = f mobile;
-     address = f address;
+     address_id = f address_id;
    }
     : 'b dict)
+
+let zip (a : 'a dict) (b : 'b dict) =
+  ({
+     id = (a.id, b.id);
+     first_name = (a.first_name, b.first_name);
+     last_name = (a.last_name, b.last_name);
+     email = (a.email, b.email);
+     mobile = (a.mobile, b.mobile);
+     address_id = (a.address_id, b.address_id);
+   }
+    : ('a * 'b) dict)

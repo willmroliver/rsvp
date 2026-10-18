@@ -1,3 +1,4 @@
+open Tyxml.Html
 open Wire.Strings
 
 module Context = struct
@@ -5,6 +6,16 @@ module Context = struct
 
   let path ?target ctx parts =
     String.concat "/" (Option.value ~default:ctx.target target :: parts)
+end
 
-  let action ~kind data = (Action.field, Action.kind_encode kind) :: data
+module Action = struct
+  let field ~kind () =
+    input
+      ~a:
+        [
+          a_input_type `Hidden;
+          a_name Action.field;
+          a_value @@ Action.kind_encode kind;
+        ]
+      ()
 end

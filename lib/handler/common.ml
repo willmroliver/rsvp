@@ -42,4 +42,8 @@ module Out = struct
 
   let html page (request : Dream.request) response =
     Dream.html @@ page (context request) response
+
+  let redirect ?target page (request : Dream.request) response =
+    Dream.redirect request
+    @@ Option.value ~default:(Dream.target request) target
 end

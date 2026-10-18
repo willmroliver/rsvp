@@ -11,7 +11,7 @@ let fields =
       returning_to = "Returning to";
       transport = "Transport needed?";
       dietary = "Dietary requirements";
-      plus_ones = "Plus ones?";
+      plus_ones = "Plus one?";
     }
     Wire.fields
 
@@ -20,7 +20,7 @@ let status_opts =
     (fun s opts ->
       let v = Wire.status_encode s in
       match s with
-      | Rsvp.NotResponded -> ("", v) :: opts
+      | Rsvp.NotResponded -> opts
       | Rsvp.Coming -> ("Coming!", v) :: opts
       | Rsvp.MaybeComing -> ("Might make it", v) :: opts
       | Rsvp.NotComing -> ("Won't be there :(", v) :: opts)
@@ -56,7 +56,7 @@ let inputs : 'a Rsvp.dict =
     returning_to = (`Text, []);
     transport = (`Select, transport_opts);
     dietary = (`Select, dietary_opts);
-    plus_ones = (`Number, []);
+    plus_ones = (`Checkbox, []);
   }
 
 let city_to_display =
@@ -116,9 +116,8 @@ let get ctx (err : decode_error option) =
             (fun ((label, name), (kind, opts)) acc ->
               match kind with
               | `Select ->
-                  Forms.options ~title:label
-                    ~a_select:
-                      [ a_class [ "hover" ]; style @@ with_err name err ]
+                  Forms.radio ~title:label
+                    (* ~a:[ style @@ with_err name err ] *)
                     name
                     (List.map
                        (fun (name, value) -> ({ name; value } : Forms.selopt))
@@ -126,14 +125,10 @@ let get ctx (err : decode_error option) =
                   :: acc
               | (`Text | `Number) as kind ->
                   Forms.field ~title:label
-                    ~a_input:
-                      [
-                        a_class [ "hover" ];
-                        a_placeholder "...";
-                        style @@ with_err name err;
-                      ]
+                    ~a_input:[ a_placeholder "..."; style @@ with_err name err ]
                     name kind
-                  :: acc)
+                  :: acc
+              | `Checkbox -> Forms.checkbox ~title:label name :: acc)
             [] (Rsvp.zip fields inputs)
         in
         els |> col ~col:"1" |> grid ~cols:"auto" ~style:[ gap @@ var "gap-lg" ]);

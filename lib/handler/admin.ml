@@ -14,6 +14,11 @@ module Users = struct
            Dream.log "CORE ERROR - %s" e;
            Core e)
 
+  let wire_error e =
+    let open Wire.Strings in
+    Dream.log "WIRE ERROR - %s" @@ Error.decode_error_to_string e;
+    Wire e
+
   (* list *)
   let list_request fields =
     Wire.Strings.Listing.args_decode { off = 0; lim = 25 } fields
@@ -23,15 +28,30 @@ module Users = struct
   let list = In.query list_request list_handler @@ Out.html Page.Admin.list
 
   (* get *)
-  let get_handler db data = Service.get db data |> map
-
   let get_request params =
-    let open Wire.Strings in
-    Admin.Users.get_decode params
-    |> Result.map_error (fun e ->
-        Dream.log "WIRE ERROR - %s" @@ Error.decode_error_to_string e;
-        Wire e)
+    Wire.Strings.Admin.Users.get_decode params |> Result.map_error wire_error
+
+  let get_handler db data = Service.get db data |> map
 
   let get params =
     In.query ~params get_request get_handler @@ Out.html Page.Admin.get
+
+  (* update *)
+  let update_request fields =
+    Wire.Strings.User.decode
+      {
+        id = UserID 0;
+        first_name = "";
+        last_name = "";
+        email = None;
+        mobile = None;
+        address_id = None;
+      }
+      fields
+    |> Result.map_error wire_error
+
+  let update_handler db data = Service.update db data |> map
+
+  let update params =
+    In.form ~params update_request update_handler @@ Out.redirect Page.Admin.get
 end

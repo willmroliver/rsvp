@@ -31,6 +31,8 @@ let page ctx content =
          stylesheet "/static/animation.css";
          stylesheet "/static/colour.css";
          stylesheet "/static/style.css";
+         stylesheet "/static/form.css";
+         stylesheet "/static/table.css";
          stylesheet "/static/vars.css";
          stylesheet "/static/ctrl.css";
          stylesheet "/mdi/css/materialdesignicons.min.css";
@@ -73,12 +75,7 @@ let page ctx content =
                         in
                         Forms.form
                           ~a:[ a_style "margin-left: auto;" ]
-                          ~submit:
-                            [
-                              button
-                                ~a:[ a_button_type `Submit ]
-                                [ Components.icon ~size:"md" icon ];
-                            ]
+                          ~submit:(Components.icon ~size:"md" icon)
                           ~csrf:ctx.csrf
                           [
                             input

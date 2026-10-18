@@ -4,20 +4,7 @@ open Html.Components
 
 let get ctx () =
   Index.index ctx
-    (let field =
-       Forms.field
-         ~a_label:[ Css.style @@ [ Css.padding "0" ] ]
-         ~a_input:
-           [
-             Css.style
-             @@ [
-                  Css.padding (Css.var "p-lg");
-                  Css.rounded (Css.var "r-sm");
-                  Css.border (Css.var "bw");
-                ];
-             a_class [ "hover" ];
-           ]
-     in
+    (let field = Forms.field in
      flex ~dir:Col
        [
          Forms.form ~action:"/login" ~mthd:`Post ~csrf:ctx.csrf

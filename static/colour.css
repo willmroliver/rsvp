@@ -97,6 +97,14 @@
     --gradient: linear-gradient(100deg, var(--purple), var(--blue), var(--teal));
     --glow: 0 0.75rem 2rem -1rem color-mix(in oklch, var(--accent) 70%, transparent);
     --elevation: 0 1.5rem 3rem -1.5rem var(--shadow);
+    --sheen: linear-gradient(oklch(100% 0 0 / 0.22), transparent 55%);
+    --ring: 0 0 0 4px color-mix(in oklch, var(--accent-2) 12%, transparent);
+
+    /* Form fields: an opaque fill with a faint rim (form.css swaps the rim
+       for --gradient on focus) */
+    --field-bg: color-mix(in oklch, var(--surface-2) 55%, var(--surface));
+    --field-rim: linear-gradient(color-mix(in oklch, var(--text) 7%, var(--field-bg)) 0 0);
+    --field-rim-hover: linear-gradient(color-mix(in oklch, var(--text) 18%, var(--field-bg)) 0 0);
     --aurora:
         radial-gradient(45% 55% at 10% 5%, color-mix(in oklch, var(--purple) 20%, transparent), transparent),
         radial-gradient(40% 50% at 90% 15%, color-mix(in oklch, var(--blue) 16%, transparent), transparent),

@@ -9,6 +9,7 @@ module type UserRepo = sig
 
   val list : db:db -> off:int -> lim:int -> (user list, string) result Lwt.t
   val get : db:db -> user_id -> (user, string) result Lwt.t
+  val update : db:db -> user -> (unit, string) result Lwt.t
 end
 
 module Users (UserRepo : UserRepo) = struct
@@ -17,4 +18,5 @@ module Users (UserRepo : UserRepo) = struct
     |> Lwt.map @@ Result.map (fun users -> { n = List.length users; users })
 
   let get db id = UserRepo.get ~db id
+  let update db user = UserRepo.update ~db user
 end

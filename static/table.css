@@ -1,0 +1,105 @@
+/* ---------- Tables ---------- */
+
+/* The wrapper is the card and the scroll container, so a wide table scrolls
+   inside it instead of widening the page. contain stops the table's width
+   from stretching the layout around it */
+.table-scroll {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    contain: inline-size;
+    border: var(--bw) solid var(--border);
+    border-radius: var(--r-lg);
+    background: color-mix(in oklch, var(--surface) 70%, transparent);
+    box-shadow: var(--elevation);
+}
+
+table {
+    --cell-min: 75px;
+    --cell-pad: var(--p-lg);
+    --cell-pad-block: var(--p-md);
+
+    inline-size: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+
+    @media (width < 40rem) {
+        --cell-pad: var(--p-sm);
+        --cell-pad-block: var(--p-sm);
+        font-size: var(--fs-sm);
+    }
+}
+
+caption {
+    padding-block-end: var(--p-sm);
+    color: var(--text-muted);
+    text-align: start;
+}
+
+/* Wrap only at spaces: emails and long words push the table wider instead */
+:is(th, td) {
+    padding: var(--cell-pad-block) var(--cell-pad);
+    text-align: start;
+    vertical-align: top;
+}
+
+/* A cell is at least --cell-min wide, or as wide as its content if that's less */
+.cell {
+    display: inline-block;
+    min-inline-size: calc-size(max-content, min(size, var(--cell-min) - 2 * var(--cell-pad)));
+}
+
+th {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 0.8em;
+    font-weight: var(--fw-strong);
+    text-transform: uppercase;
+}
+
+/* Hairlines between rows, none under the last */
+tr:not(:last-child)>td,
+thead th {
+    border-block-end: var(--bw) solid var(--border);
+}
+
+/* The tint is a variable so a pinned cell can paint it over its solid fill */
+tbody tr:hover {
+    --row-tint: color-mix(in oklch, var(--accent) 8%, transparent);
+    background: var(--row-tint);
+}
+
+/* Opt-in: <table class="pin-last"> keeps the last column (row actions) in view */
+.pin-last :is(th, td):last-child {
+    position: sticky;
+    inset-inline-end: 0;
+    box-shadow: inset var(--bw) 0 0 var(--border);
+}
+
+.pin-last td:last-child {
+    background: linear-gradient(var(--row-tint, transparent) 0 0), var(--surface);
+}
+
+/* Buttons in cells are compact row actions; a wrapping form sits inline */
+:is(td, th) :is(button, [type="submit"], [type="button"], .button) {
+    min-block-size: auto;
+    padding: var(--p-xs) var(--p-md);
+    gap: var(--gap-xs);
+    font-size: 0.8em;
+}
+
+/* Soft chips so a column of them doesn't shout; tones stay solid */
+:is(td, th) :is(button, [type="submit"], [type="button"], .button):not(.accent, .success, .danger, .info) {
+    background: var(--field-bg);
+    color: var(--text-muted);
+
+    &:hover {
+        background: var(--surface-2);
+        color: var(--text);
+        box-shadow: none;
+    }
+}
+
+:is(td, th) form {
+    display: inline-flex;
+    gap: var(--gap-xs);
+}

@@ -2,7 +2,7 @@ open Common
 open Domain
 
 let post_request =
-  Wire.Strings.Rsvp.rsvp_decode
+  Wire.Strings.Rsvp.decode
     {
       status = NotResponded;
       arriving_from = None;

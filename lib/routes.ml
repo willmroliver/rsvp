@@ -35,6 +35,8 @@ let start () =
          (* admin *)
          Dream.get "/admin/users" Handler.Admin.Users.list;
          Dream.get "/admin/users/:id" @@ params [ "id" ] Handler.Admin.Users.get;
+         Dream.post "/admin/users/:id"
+         @@ params [ "id" ] Handler.Admin.Users.update;
          (* rsvp *)
          Dream.get "/rsvp" Handler.Rsvp.get;
          Dream.post "/rsvp" Handler.Rsvp.post;

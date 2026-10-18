@@ -3,6 +3,8 @@ open Error
 
 module Users = struct
   let field_id = "id"
+
+  (* get *)
   let get_encode id = [ (field_id, string_of_int @@ User.id_to_int id) ]
 
   let get_decode data =
@@ -14,6 +16,7 @@ module Users = struct
     | kv :: tail -> Error (BadField kv)
     | [] -> Error (MissingRequired field_id)
 
+  (* delete *)
   let delete_encode = get_encode
   let delete_decode = get_decode
 end

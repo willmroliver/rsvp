@@ -1,4 +1,20 @@
 /* All motion lives here, and only for people who haven't asked for less */
+
+/* Typed so it computes on the element that sets it: descendants inherit that
+   element's delay rather than recalculating from their own sibling-index() */
+@property --rise-delay {
+    syntax: "<time>";
+    inherits: true;
+    initial-value: 0s;
+}
+
+/* Typed so a field's fill (form.css) can fade between states */
+@property --fill {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: transparent;
+}
+
 @media (prefers-reduced-motion: no-preference) {
     html {
         scroll-behavior: smooth;
@@ -11,16 +27,33 @@
 
     /* Page content rises in, one child after another */
     body > * > * {
+        --rise-delay: calc(min(sibling-index(), 8) * var(--stagger));
         animation: rise var(--dur-slow) var(--ease-out) backwards;
-        animation-delay: calc(min(sibling-index(), 8) * var(--stagger));
+        animation-delay: var(--rise-delay);
+    }
+
+    /* Fading or blurring an element cuts any glass inside it off from the
+       page behind, so it can't frost until the animation ends. A container
+       holding glass only moves; each part of it without glass (and each glass
+       panel itself) still fades in. :where keeps this below any other rule.
+       Glass is found by Css.glass's inline style, or the .glass class; a
+       backdrop-filter set in a stylesheet rule needs adding to each list */
+    body > * > :has(.glass, [style*="backdrop-filter"]) {
+        animation-name: settle;
+    }
+
+    :where(body > * > :has(.glass, [style*="backdrop-filter"]),
+        body > * > :has(.glass, [style*="backdrop-filter"]) :has(.glass, [style*="backdrop-filter"]))
+        > :where(:not(:has(.glass, [style*="backdrop-filter"]))) {
+        animation: rise var(--dur-slow) var(--ease-out) backwards;
+        animation-delay: var(--rise-delay);
     }
 
     h1 {
         animation:
             rise var(--dur-slow) var(--ease-out) backwards,
             shimmer var(--dur-shimmer) ease-in-out infinite alternate;
-    }
-    body::before {
+    }    body::before {
         animation: drift var(--dur-drift) ease-in-out infinite alternate;
     }
 
@@ -28,10 +61,15 @@
         transition: outline-offset var(--dur-fast) var(--ease-out);
     }
 
+    /* The rim can't fade (it's an image) but the fill and ring can */
     :is(input, select, textarea, label) {
         transition:
-            border-color var(--dur-fast) ease,
-            background-color var(--dur-fast) ease;
+            --fill var(--dur-fast) ease,
+            box-shadow var(--dur-fast) ease;
+    }
+
+    form > [type="submit"]::after {
+        transition: translate var(--dur-slow) var(--ease-spring);
     }
 
     tbody tr {
@@ -98,6 +136,12 @@
         opacity: 0;
         translate: 0 1rem;
         filter: blur(4px);
+    }
+}
+
+@keyframes settle {
+    from {
+        translate: 0 1rem;
     }
 }
 
