@@ -5,9 +5,9 @@ type email_error = Empty | BadSymbol of char * int
 
 let parse_email s =
   let n = String.length s in
-  match String.index s '@' with
-  | 0 | 1 -> Error (BadSymbol ('@', 0))
-  | i when i >= n - 2 -> Error (BadSymbol ('@', i))
+  match String.index_opt s '@' with
+  | Some 0 | Some 1 -> Error (BadSymbol ('@', 0))
+  | Some i when i >= n - 2 -> Error (BadSymbol ('@', i))
   | _ ->
       Option.fold ~none:(Error Empty)
         ~some:(fun s -> Ok (Email s))

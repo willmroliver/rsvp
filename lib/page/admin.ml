@@ -62,35 +62,53 @@ let get ctx user =
   in
 
   let open Ctrl in
+  let user_email =
+    Option.fold ~none:"" ~some:Contact.email_to_string user.email
+  in
+  let user_mobile =
+    Option.fold ~none:"" ~some:Contact.mobile_to_string user.mobile
+  in
+
   Editor.make
     ~toggle:[ Editor.off [ icon "pencil" ]; Editor.on [ icon "eye-outline" ] ]
     [
-      grid ~cols:"auto auto" ~rows:"auto" ~style:[ gap @@ var "gap-lg" ]
-      @@ col ~col:"1" ~style
-           [ txt "First Name"; txt "Last Name"; txt "Email"; txt "Mobile" ]
-      @ [
-          Editor.off
-          @@ col ~col:"2" ~style
+      grid ~cols:"auto" ~rows:"auto"
+        ~style:
+          ([
+             gap @@ var "gap-lg";
+             padding @@ var "p-lg";
+             rounded @@ var "r-md";
+             border "1px";
+             ("box-shadow", var "elevation");
+           ]
+          @ glass "surface")
+      @@ [
+           Editor.off
+           @@ col ~col:"1" ~style
+                [ txt "First Name"; txt "Last Name"; txt "Email"; txt "Mobile" ]
+           @ col ~col:"2" ~style
                [
                  txt user.first_name;
                  txt user.last_name;
-                 txt
-                 @@ Option.fold ~none:"" ~some:Contact.email_to_string
-                      user.email;
-                 txt
-                 @@ Option.fold ~none:"" ~some:Contact.mobile_to_string
-                      user.mobile;
+                 txt user_email;
+                 txt user_mobile;
                ];
-          Editor.on
-          @@ col ~col:"2"
-               [
-                 Forms.field
-                   ~a_input:[ a_value user.first_name ]
-                   ~title:"First Name" "first_name" `Text;
-                 Forms.field ~title:"Last Name" "last_name" `Text;
-                 Forms.field ~title:"Email" "email" `Email;
-                 Forms.field ~title:"Mobile" "email" `Tel;
-               ];
-        ];
+           Editor.on
+           @@ col ~col:"1"
+                [
+                  Forms.field
+                    ~a_input:[ a_value user.first_name ]
+                    ~title:"First Name" "first_name" `Text;
+                  Forms.field
+                    ~a_input:[ a_value user.last_name ]
+                    ~title:"Last Name" "last_name" `Text;
+                  Forms.field
+                    ~a_input:[ a_value user_email ]
+                    ~title:"Email" "email" `Email;
+                  Forms.field
+                    ~a_input:[ a_value user_mobile ]
+                    ~title:"Mobile" "mobile" `Tel;
+                ];
+         ];
     ]
   |> Index.index ctx

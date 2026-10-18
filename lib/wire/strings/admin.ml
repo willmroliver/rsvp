@@ -7,7 +7,7 @@ module Users = struct
 
   let get_decode data =
     match data with
-    | (name, id) :: _ when String.equal name field_id ->
+    | (name, id) :: _ when name = field_id ->
         int_of_string_opt id
         |> Option.map (fun id -> User.UserID id)
         |> Option.to_result ~none:(BadValue id)

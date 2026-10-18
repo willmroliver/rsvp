@@ -20,7 +20,7 @@ let table, Expr.[ id; first_name; last_name; email; mobile; address ] =
               foreign_key ~table:Address.table ~columns:[ Address.id ]
                 ~on_update:`CASCADE ();
             ]
-          ~ty:Type.text;
+          ~ty:Type.int;
       ]
 
 let decode_user (id, (first_name, (last_name, (email, (mobile, ()))))) =

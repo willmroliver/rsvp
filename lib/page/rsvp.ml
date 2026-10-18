@@ -104,7 +104,7 @@ let pill text =
 
 let with_err name (err : decode_error option) =
   match err with
-  | Some (BadField (field, _)) when String.equal field name ->
+  | Some (BadField (field, _)) when field = name ->
       [ ("box-shadow", "0 0 2px 1px " ^ var "red"); color @@ var "red" ]
   | _ -> []
 

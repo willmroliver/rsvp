@@ -1,8 +1,6 @@
 open Common
 open Domain
 
-let fields = Rsvp.map (fun (_, name) -> name) Page.Rsvp.fields
-
 let post_request =
   Wire.Strings.Rsvp.rsvp_decode
     {

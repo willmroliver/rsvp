@@ -40,7 +40,7 @@ let dietary_decode = function
   | s -> (
       match String.split_on_char ',' s with
       | key :: l ->
-          if key != "allergies" then Error (BadValue key)
+          if key <> "allergies" then Error (BadValue key)
           else
             List.map
               (fun a ->
@@ -100,7 +100,7 @@ let rec rsvp_decode default = function
             { default with returning_to = Some (Location.City city) }
             tail
       | Error (BadValue "") ->
-          rsvp_decode { default with arriving_from = None } tail
+          rsvp_decode { default with returning_to = None } tail
       | Error _ -> Error (BadField (name, v)))
   | (name, v) :: tail when name = fields.transport -> (
       match transport_decode v with

@@ -108,7 +108,7 @@ let page ctx content =
                            (Css.style
                            @@ [ ("z-index", "-1") ]
                            @
-                           if String.equal ctx.target "/" then []
+                           if ctx.target = "/" then []
                            else [ Css.position "absolute" ]);
                          ]
                        [ txt "Will Oliver's Type-Safe Polymorphic RSVP Site" ];

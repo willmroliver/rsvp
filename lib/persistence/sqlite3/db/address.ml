@@ -80,9 +80,9 @@ module Repo = struct
         |> Result.map_error Caqti_error.show
         |> Result.map @@ List.map decode_address)
 
-  let delete ~(db : db) user_id =
+  let delete ~(db : db) address_id =
     Query.delete ~from:table
-    |> Query.where (id = i @@ Location.id_to_int user_id)
+    |> Query.where (id = i @@ Location.id_to_int address_id)
     |> Request.make_zero |> exec db
     |> Lwt.map @@ Result.map_error Caqti_error.show
 end
