@@ -68,6 +68,13 @@ module Editor = struct
            ])
          t
 
-  let on content = slot ~a:[ a_class [ on_cl ] ] content
-  let off content = slot ~a:[ a_class [ off_cl ] ] content
+  let on content = slot ~a:[ a_class [ editor_cl; on_cl ] ] content
+  let off content = slot ~a:[ a_class [ editor_cl; off_cl ] ] content
+end
+
+module Toggle = struct
+  let container = [ "toggle" ]
+  let input = [ "toggle"; "ctrl" ]
+  let on = [ "toggle"; "on"; "slide-in-top" ]
+  let off = [ "toggle"; "off"; "slide-in-top" ]
 end

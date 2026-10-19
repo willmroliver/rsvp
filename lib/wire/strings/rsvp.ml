@@ -3,14 +3,12 @@ open Domain
 open Error
 
 let status_decode = function
-  | "" | "not_responded" -> Ok Rsvp.NotResponded
   | "coming" -> Ok Rsvp.Coming
   | "maybe_coming" -> Ok Rsvp.MaybeComing
   | "not_coming" -> Ok Rsvp.NotComing
   | v -> Error (BadValue v)
 
 let status_encode = function
-  | Rsvp.NotResponded -> "not_responded"
   | Rsvp.Coming -> "coming"
   | Rsvp.MaybeComing -> "maybe_coming"
   | Rsvp.NotComing -> "not_coming"
@@ -74,7 +72,7 @@ let fields : string Rsvp.dict =
     returning_to = "returning_to";
     transport = "transport";
     dietary = "dietary";
-    plus_ones = "plus_ones";
+    plus_one = "plus_one";
   }
 
 open Domain.Rsvp
@@ -104,9 +102,8 @@ let rec decode default = function
       match dietary_decode v with
       | Ok dietary -> decode { default with dietary } tail
       | Error _ -> Error (BadField (name, v)))
-  | (name, v) :: tail when name = fields.plus_ones -> (
-      match int_of_string_opt v with
-      | Some plus_ones -> decode { default with plus_ones } tail
-      | None -> Error (BadField (name, v)))
+  | (name, v) :: tail when name = fields.plus_one ->
+      let open Proof.Strings in
+      decode { default with plus_one = non_empty @@ of_string v } tail
   | (name, v) :: fields -> Error (BadField (name, v))
   | [] -> Ok default

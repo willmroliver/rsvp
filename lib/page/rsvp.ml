@@ -9,9 +9,9 @@ let fields =
       status = "Are you free?";
       arriving_from = "Arriving from";
       returning_to = "Returning to";
-      transport = "Transport needed?";
+      transport = "Transport help needed?";
       dietary = "Dietary requirements";
-      plus_ones = "Plus one?";
+      plus_one = "Plus one?";
     }
     Wire.fields
 
@@ -20,7 +20,6 @@ let status_opts =
     (fun s opts ->
       let v = Wire.status_encode s in
       match s with
-      | Rsvp.NotResponded -> opts
       | Rsvp.Coming -> ("Coming!", v) :: opts
       | Rsvp.MaybeComing -> ("Might make it", v) :: opts
       | Rsvp.NotComing -> ("Won't be there :(", v) :: opts)
@@ -51,12 +50,12 @@ let dietary_opts =
 
 let inputs : 'a Rsvp.dict =
   {
-    status = (`Select, status_opts);
-    arriving_from = (`Text, []);
-    returning_to = (`Text, []);
-    transport = (`Select, transport_opts);
-    dietary = (`Select, dietary_opts);
-    plus_ones = (`Checkbox, []);
+    status = (`Select, status_opts, "1", "1/3");
+    arriving_from = (`Text, [], "2", "1");
+    returning_to = (`Text, [], "2", "2");
+    transport = (`Select, transport_opts, "3", "1/3");
+    dietary = (`Select, dietary_opts, "4", "1/3");
+    plus_one = (`Checkbox, [], "5", "1/3");
   }
 
 let city_to_display =
@@ -64,7 +63,6 @@ let city_to_display =
       match c with Location.City c -> Proof.Strings.to_string c)
 
 let status_to_display = function
-  | Rsvp.NotResponded -> "???"
   | Rsvp.Coming -> "Definitely Coming"
   | Rsvp.MaybeComing -> "Not Sure"
   | Rsvp.NotComing -> "Can't make it"
@@ -87,6 +85,7 @@ open Tyxml.Html
 open Html.Components
 open Html.Css
 open Html
+open Ctrl
 
 let pill text =
   div
@@ -109,33 +108,84 @@ let with_err name (err : decode_error option) =
   | _ -> []
 
 let get ctx (err : decode_error option) =
-  Index.index ctx @@ Forms.form ~csrf:ctx.csrf
+  Index.index ctx
+  @@ Forms.form ~csrf:ctx.csrf
+       ~a:
+         [
+           style @@ glass "surface"
+           @ [
+               padding @@ var "p-lg";
+               rounded @@ var "r-md";
+               ("box-shadow", var "elevation");
+               border "1px";
+             ];
+         ]
   @@ [
        (let els =
           Rsvp.fold
-            (fun ((label, name), (kind, opts)) acc ->
-              match kind with
-              | `Select ->
-                  Forms.radio ~title:label
-                    (* ~a:[ style @@ with_err name err ] *)
-                    name
-                    (List.map
-                       (fun (name, value) -> ({ name; value } : Forms.selopt))
-                       opts)
-                  :: acc
-              | (`Text | `Number) as kind ->
-                  Forms.field ~title:label
-                    ~a_input:[ a_placeholder "..."; style @@ with_err name err ]
-                    name kind
-                  :: acc
-              | `Checkbox -> Forms.checkbox ~title:label name :: acc)
+            (fun ((label, name), (kind, opts, row, col)) acc ->
+              (cel ~row ~col
+              @@ [
+                   (match kind with
+                   | `Select ->
+                       Forms.radio ~title:label
+                         ~a:[ style @@ with_err name err ]
+                         name
+                         (List.map
+                            (fun (name, value) ->
+                              ({ name; value } : Forms.selopt))
+                            opts)
+                   | (`Text | `Number) as kind ->
+                       Forms.field ~title:label
+                         ~a_input:
+                           [
+                             (a_placeholder
+                             @@
+                             match name with
+                             | name
+                               when name = Wire.fields.arriving_from
+                                    || name = Wire.fields.returning_to ->
+                                 "E.g. \"London\", \"Milano\""
+                             | _ -> "");
+                             style @@ with_err name err;
+                           ]
+                         name kind
+                   | `Checkbox ->
+                       flex ~dir:Row
+                         ~a:[ a_class Toggle.container ]
+                         ~style:
+                           [
+                             ("align-items", "end"); Css.gap @@ Css.var "gap-sm";
+                           ]
+                         [
+                           Forms.checkbox
+                             ~a:
+                               [
+                                 a_class Toggle.input;
+                                 Css.style [ ("flex-grow", "1") ];
+                               ]
+                             ~title:label "";
+                           Forms.field
+                             ~a:
+                               [
+                                 a_class Toggle.on;
+                                 Css.style [ ("flex-grow", "1") ];
+                               ]
+                             ~a_input:
+                               [
+                                 a_placeholder "Tell us who you'd like to bring";
+                               ]
+                             name `Text;
+                         ]);
+                 ])
+              :: acc)
             [] (Rsvp.zip fields inputs)
         in
-        els |> col ~col:"1" |> grid ~cols:"auto" ~style:[ gap @@ var "gap-lg" ]);
+        els |> grid ~cols:"auto" ~style:[ gap @@ var "gap-xl" ]);
      ]
 
 let post ctx
-    ({ status; arriving_from; returning_to; transport; dietary; plus_ones } :
+    ({ status; arriving_from; returning_to; transport; dietary; plus_one } :
       Rsvp.rsvp) =
   Index.index ctx
     (let fields =

@@ -7,13 +7,12 @@ let next_id name =
   incr state;
   name ^ "-" ^ string_of_int !state
 
-let label_for a text id =
-  label ~a:([ a_label_for id ] @ Option.value ~default:[] a) [ txt text ]
+let label_for a text id = label ~a:([ a_label_for id ] @ a) [ txt text ]
 
-let field ?title ?a_label ?a_input name kind =
+let field ?title ?(a = []) ?(a_label = []) ?(a_input = []) name kind =
   let id = next_id name in
 
-  div
+  div ~a
   @@ Option.fold ~none:[]
        ~some:(fun text -> [ label_for a_label text id ])
        title
@@ -21,13 +20,13 @@ let field ?title ?a_label ?a_input name kind =
       input
         ~a:
           ([ a_id id; a_input_type kind; a_name name; a_autocomplete `On ]
-          @ Option.value ~default:[] a_input)
+          @ a_input)
         ();
     ]
 
 type selopt = { name : string; value : string }
 
-let options ?title ?a_label ?(a_select = []) ?(a_option = []) name opts =
+let options ?title ?(a_label = []) ?(a_select = []) ?(a_option = []) name opts =
   let id = next_id name in
 
   div
@@ -45,17 +44,22 @@ let checkbox ?(a = []) ~title name =
   let id = next_id name in
   label
     ~a:[ a_label_for id ]
-    [ input ~a:[ a_input_type `Checkbox; a_name name; a_id id ] (); txt title ]
+    [
+      input ~a:([ a_input_type `Checkbox; a_name name; a_id id ] @ a) ();
+      txt title;
+    ]
 
-let radio ?title ?(a = []) name opts =
-  fieldset ~legend:(legend [ txt name ]) ~a
+let radio ?title ?(a = []) ?(a_input = []) name opts =
+  fieldset ~legend:(legend [ txt @@ Option.value ~default:name title ]) ~a
   @@ List.map
        (fun o ->
          let id = next_id name in
          label
            [
              input
-               ~a:[ a_input_type `Radio; a_name name; a_value o.value; a_id id ]
+               ~a:
+                 ([ a_input_type `Radio; a_name name; a_value o.value; a_id id ]
+                 @ a_input)
                ();
              txt o.name;
            ])

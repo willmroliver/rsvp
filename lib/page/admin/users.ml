@@ -34,7 +34,7 @@ let user_to_row ctx (user : string User.dict) =
                 ]
               ~action:(Context.path ctx [ user.id ])
               ~csrf:ctx.csrf
-              [ (Wire.Strings.User.field.id, user.id); ("action", "delete") ];
+            @@ Wire.Strings.Action.encode Delete;
           ];
       ];
   ]
@@ -96,8 +96,8 @@ let get ctx user =
                 [
                   (Forms.form ~csrf:ctx.csrf ~submit:(txt "Save")
                   @@ let open Wire.Strings.User in
-                     List.map (fun (f, v, t, k) ->
-                         Forms.field ~a_input:[ a_value v ] ~title:t f k)
+                     (List.map (fun (f, v, t, k) ->
+                          Forms.field ~a_input:[ a_value v ] ~title:t f k)
                      @@ User.fold
                           (fun u l ->
                             match u with
@@ -110,7 +110,8 @@ let get ctx user =
                             | f, v when f = field.mobile ->
                                 (f, v, "Mobile", `Tel) :: l
                             | _ -> l)
-                          [] user);
+                          [] user)
+                     @ [ Action.field ~kind:Update () ]);
                 ];
          ];
     ]

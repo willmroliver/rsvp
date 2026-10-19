@@ -16,6 +16,7 @@ module Auth = Make (Db.User.Repo)
 
 let post =
   In.form
-    (post_request { first_name = ""; last_name = ""; email = "" })
-    Auth.login
+  @@ In.pipe
+       (post_request { first_name = ""; last_name = ""; email = "" })
+       Auth.login
   @@ Out.html Page.Auth.post

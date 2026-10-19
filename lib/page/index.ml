@@ -56,6 +56,7 @@ let page ctx content =
                     Css.border (Css.var "bw");
                     ("position", "sticky");
                     ("top", "0");
+                    ("z-index", "100");
                   ]
                  @ cell_styles @ Css.glass "surface")
                [
@@ -92,25 +93,23 @@ let page ctx content =
                ];
              cel ~col:"1" ~row:"2" ~style:cell_styles
                [
+                 h1
+                   ~a:
+                     [
+                       (Css.style
+                       @@ [ ("z-index", "-1"); ("text-align", "center") ]
+                       @
+                       if ctx.target = "/" then []
+                       else [ Css.position "absolute" ]);
+                     ]
+                   [ txt "Will Oliver's Type-Safe Polymorphic RSVP Site" ];
                  flex ~dir:Col
                    ~style:
                      [
                        ("margin", "0 auto");
                        ("width", "min(100%, " ^ Css.var "content-w" ^ ")");
                      ]
-                   [
-                     h1
-                       ~a:
-                         [
-                           (Css.style
-                           @@ [ ("z-index", "-1") ]
-                           @
-                           if ctx.target = "/" then []
-                           else [ Css.position "absolute" ]);
-                         ]
-                       [ txt "Will Oliver's Type-Safe Polymorphic RSVP Site" ];
-                     content;
-                   ];
+                   [ content ];
                ];
            ];
        ])

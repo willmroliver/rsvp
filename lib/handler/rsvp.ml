@@ -4,17 +4,18 @@ open Domain
 let post_request =
   Wire.Strings.Rsvp.decode
     {
-      status = NotResponded;
+      status = MaybeComing;
       arriving_from = None;
       returning_to = None;
       transport = Requirement.NoTransport;
       dietary = Requirement.NoDietary;
-      plus_ones = 0;
+      plus_one = None;
     }
 
 let post_handler db data = Core.Rsvp.rsvp db data |> Lwt.return_ok
 let get ?(err = None) = fun req -> Out.html Page.Rsvp.get req err
 
 let post =
-  In.form ~onerr:(fun req err -> get ~err req) post_request post_handler
+  In.form
+  @@ In.pipe ~onerr:(fun req err -> get ~err req) post_request post_handler
   @@ Out.html Page.Rsvp.post

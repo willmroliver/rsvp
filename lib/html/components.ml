@@ -8,17 +8,15 @@ let make_a style opt_s opt_a =
   [ Css.style @@ style @ Option.value ~default:[] opt_s ]
   @ Option.value ~default:[] opt_a
 
-let grid ?cols ?rows ?style ?a =
+let grid ?(cols = "auto") ?(rows = "auto") ?style ?a =
   div
     ~a:
       (make_a
-         ([ Css.display "grid" ]
-         @ Option.fold ~none:[]
-             ~some:(fun cols -> [ ("grid-template-columns", cols) ])
-             cols
-         @ Option.fold ~none:[]
-             ~some:(fun rows -> [ ("grid-template-rows", rows) ])
-             rows)
+         [
+           Css.display "grid";
+           ("grid-template-columns", cols);
+           ("grid-template-rows", rows);
+         ]
          style a)
 
 let cel ~col ~row ?style ?a =

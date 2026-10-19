@@ -1,32 +1,40 @@
+open Core.Common
+
 module In = struct
+  type fields = (string * string) list
+  type pipeline = fields -> Dream.handler
+
   let _err request onerr =
    fun status e ->
     match onerr with Some next -> next request e | None -> Dream.empty status
 
-  let query ?onerr ?params reader core writer (request : Dream.request) =
-    let onerr = _err request onerr in
-    let input = Dream.all_queries request @ Option.value ~default:[] params in
-
-    match reader @@ input with
+  let pipe ?onerr reader core writer =
+   fun fields req ->
+    match reader fields with
     | Ok data -> (
-        match%lwt Dream.sql request (fun db -> core db data) with
-        | Ok res -> writer request res
-        | Error e -> onerr `Internal_Server_Error @@ Some e)
-    | Error e -> onerr `Internal_Server_Error @@ Some e
+        match%lwt Dream.sql req (fun db -> core db data) with
+        | Ok res -> writer req res
+        | Error e -> _err req onerr `Internal_Server_Error @@ Some e)
+    | Error e -> _err req onerr `Internal_Server_Error @@ Some e
 
-  let form ?onerr ?params reader core writer (request : Dream.request) =
-    let onerr = _err request onerr in
+  let query ?(params = []) (pipeline : pipeline) =
+   fun req -> req |> pipeline @@ Dream.all_queries req @ params
 
-    match%lwt Dream.form request with
-    | `Ok fields -> (
-        let fields = fields @ Option.value ~default:[] params in
-        match reader fields with
-        | Ok data -> (
-            match%lwt Dream.sql request (fun db -> core db data) with
-            | Ok res -> writer request res
-            | Error e -> onerr `Internal_Server_Error @@ Some e)
-        | Error e -> onerr `Internal_Server_Error @@ Some e)
-    | _ -> onerr `Bad_Request None
+  let form ?(params = []) (pipeline : pipeline) =
+   fun req ->
+    match%lwt Dream.form req with
+    | `Ok fields -> req |> pipeline @@ fields @ params
+    | _ -> _err req None `Bad_Request None
+
+  let action (map : Action.kind -> pipeline option) =
+   fun fields req ->
+    let kind, fields = Wire.Strings.Action.partition fields in
+    match kind with
+    | Ok kind -> (
+        match map kind with
+        | Some pipeline -> pipeline fields req
+        | None -> _err req None `Bad_Request None)
+    | Error _ -> _err req None `Bad_Request None
 end
 
 module Out = struct

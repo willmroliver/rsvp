@@ -5,7 +5,10 @@ open Common
 module Users = struct
   module Service = Core.Admin.Users (Db.User.Repo)
 
-  type error = Wire of Wire.Strings.Error.decode_error | Core of string
+  type error =
+    | Wire of Wire.Strings.Error.decode_error
+    | Core of string
+    | Handler of string
 
   let map res =
     res
@@ -25,7 +28,11 @@ module Users = struct
     |> Result.map_error (fun e -> Wire e)
 
   let list_handler db data = Service.list db data |> map
-  let list = In.query list_request list_handler @@ Out.html Page.Admin.list
+
+  let list =
+    In.query
+    @@ In.pipe list_request list_handler
+    @@ Out.html Page.Admin.Users.list
 
   (* get *)
   let get_request params =
@@ -34,7 +41,9 @@ module Users = struct
   let get_handler db data = Service.get db data |> map
 
   let get params =
-    In.query ~params get_request get_handler @@ Out.html Page.Admin.get
+    In.query ~params
+    @@ In.pipe get_request get_handler
+    @@ Out.html Page.Admin.Users.get
 
   (* update *)
   let update_request fields =
@@ -52,6 +61,23 @@ module Users = struct
 
   let update_handler db data = Service.update db data |> map
 
-  let update params =
-    In.form ~params update_request update_handler @@ Out.redirect Page.Admin.get
+  (* delete *)
+  let delete_request fields =
+    Wire.Strings.Admin.Users.get_decode fields |> Result.map_error wire_error
+
+  let delete_handler db data = Service.delete db data |> map
+
+  (* post *)
+  let post params =
+    In.form ~params @@ In.action
+    @@ function
+    | Update ->
+        Some
+          (In.pipe update_request update_handler
+          @@ Out.redirect Page.Admin.Users.get)
+    | Delete ->
+        Some
+          (In.pipe delete_request delete_handler
+          @@ Out.redirect ~target:"/admin/users" Page.Admin.Users.list)
+    | _ -> None
 end
