@@ -1,17 +1,7 @@
 open Common
 open Domain
 
-let post_request =
-  Wire.Strings.Rsvp.decode
-    {
-      status = MaybeComing;
-      arriving_from = None;
-      returning_to = None;
-      transport = Requirement.NoTransport;
-      dietary = Requirement.NoDietary;
-      plus_one = None;
-    }
-
+let post_request = Wire.Strings.Rsvp.decode
 let post_handler db data = Core.Rsvp.rsvp db data |> Lwt.return_ok
 let get ?(err = None) = fun req -> Out.html Page.Rsvp.get req err
 

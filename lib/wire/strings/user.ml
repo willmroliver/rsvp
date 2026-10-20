@@ -1,4 +1,6 @@
 open Domain
+open User
+open Common
 open Error
 
 let field =
@@ -10,31 +12,52 @@ let field =
      mobile = "mobile";
      address_id = "address_id";
    }
-    : string User.dict)
+    : string dict)
 
-let rec decode (default : User.user) = function
-  | (name, v) :: tail when name = field.id -> (
-      match int_of_string_opt v with
-      | Some v -> decode { default with id = UserID v } tail
-      | _ -> Error (BadValue v))
-  | (name, v) :: tail when name = field.first_name ->
-      decode { default with first_name = v } tail
-  | (name, v) :: tail when name = field.last_name ->
-      decode { default with last_name = v } tail
-  | (name, v) :: tail when name = field.email -> (
-      match Contact.parse_email v with
-      | Ok v -> decode { default with email = Some v } tail
-      | _ -> Error (BadValue v))
-  | (name, v) :: tail when name = field.mobile -> (
-      match Contact.parse_mobile v with
-      | Ok v -> decode { default with mobile = Some v } tail
-      | _ -> Error (BadValue v))
-  | (name, v) :: tail when name = field.address_id -> (
-      match int_of_string_opt v with
-      | Some v -> decode { default with address_id = Some (AddressID v) } tail
-      | _ -> Error (BadValue v))
-  | kv :: tail -> Error (BadField kv)
-  | [] -> Ok default
+let decode data =
+  let open Fields in
+  let id, data = one data field.id in
+  let first_name, data = one data field.first_name in
+  let last_name, data = one data field.last_name in
+  let email, data = one_opt data field.email in
+  let mobile, data = one_opt data field.mobile in
+  let address_id, data = one_opt data field.address_id in
+
+  (let+ _ =
+     match data with
+     | [] -> Ok ()
+     | _ -> Error (List.map (fun v -> BadField v) data)
+   and+ id =
+     Result.bind id (fun v ->
+         Option.map (fun v -> UserID v) @@ int_of_string_opt v
+         |> Option.to_result ~none:(BadValue v))
+     |> map_err
+   and+ first_name = first_name |> map_err
+   and+ last_name = last_name |> map_err
+   and+ email =
+     Result.bind email
+     @@ Option.fold ~none:(Ok None) ~some:(fun v ->
+         Contact.parse_email v
+         |> Result.map_error (fun _ -> BadValue v)
+         |> Result.map Option.some)
+     |> map_err
+   and+ mobile =
+     Result.bind mobile
+     @@ Option.fold ~none:(Ok None) ~some:(fun v ->
+         Contact.parse_mobile v
+         |> Result.map_error (fun _ -> BadValue v)
+         |> Result.map Option.some)
+     |> map_err
+   and+ address_id =
+     Result.bind address_id
+     @@ Option.fold ~none:(Ok None) ~some:(fun v ->
+         int_of_string_opt v
+         |> Option.to_result ~none:(BadValue v)
+         |> Result.map (fun v -> Some (Location.AddressID v)))
+     |> map_err
+   in
+   { id; first_name; last_name; email; mobile; address_id })
+  |> Result.map_error Error.many
 
 let encode
     ({ id; first_name; last_name; email; mobile; address_id } : User.user) =

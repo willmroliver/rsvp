@@ -1,6 +1,6 @@
 open Core.Rsvp
 open Domain
-open Wire.Strings.Error
+open Wire.Strings.Common
 module Wire = Wire.Strings.Rsvp
 
 let fields =
@@ -101,13 +101,13 @@ let pill text =
       ]
     [ txt text ]
 
-let with_err name (err : decode_error option) =
+let with_err name (err : Error.t option) =
   match err with
   | Some (BadField (field, _)) when field = name ->
       [ ("box-shadow", "0 0 2px 1px " ^ var "red"); color @@ var "red" ]
   | _ -> []
 
-let get ctx (err : decode_error option) =
+let get ctx (err : Error.t option) =
   Index.index ctx
   @@ Forms.form ~csrf:ctx.csrf
        ~a:

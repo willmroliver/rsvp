@@ -1,14 +1,11 @@
 open Persistence.Sqlite3
-open Core.Common
+open Wire.Strings.Common
 open Common
 
 module Users = struct
   module Service = Core.Admin.Users (Db.User.Repo)
 
-  type error =
-    | Wire of Wire.Strings.Error.decode_error
-    | Core of string
-    | Handler of string
+  type error = Wire of Error.t | Core of string | Handler of string
 
   let map res =
     res
@@ -18,13 +15,12 @@ module Users = struct
            Core e)
 
   let wire_error e =
-    let open Wire.Strings in
-    Dream.log "WIRE ERROR - %s" @@ Error.decode_error_to_string e;
+    Dream.log "WIRE ERROR - %s" @@ Error.to_string e;
     Wire e
 
   (* list *)
   let list_request fields =
-    Wire.Strings.Listing.args_decode { off = 0; lim = 25 } fields
+    Listing.args_decode { off = 0; lim = 25 } fields
     |> Result.map_error (fun e -> Wire e)
 
   let list_handler db data = Service.list db data |> map
@@ -47,17 +43,7 @@ module Users = struct
 
   (* update *)
   let update_request fields =
-    Wire.Strings.User.decode
-      {
-        id = UserID 0;
-        first_name = "";
-        last_name = "";
-        email = None;
-        mobile = None;
-        address_id = None;
-      }
-      fields
-    |> Result.map_error wire_error
+    Wire.Strings.User.decode fields |> Result.map_error wire_error
 
   let update_handler db data = Service.update db data |> map
 

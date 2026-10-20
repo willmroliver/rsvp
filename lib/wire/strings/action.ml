@@ -1,5 +1,5 @@
 open Core.Common.Action
-open Error
+open Common.Error
 
 let field = "action"
 

@@ -1,4 +1,5 @@
 open Domain
+open Common
 open Error
 
 module Users = struct
