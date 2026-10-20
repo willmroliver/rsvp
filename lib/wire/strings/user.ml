@@ -23,6 +23,13 @@ let decode data =
   let mobile, data = one_opt data field.mobile in
   let address_id, data = one_opt data field.address_id in
 
+  let none_or_valid f v =
+    Result.bind v
+    @@ Option.fold ~none:(Ok None) ~some:(fun v ->
+        f v |> Result.map_error (fun _ -> BadValue v) |> Result.map Option.some)
+    |> map_err
+  in
+
   (let+ _ =
      match data with
      | [] -> Ok ()
@@ -34,27 +41,15 @@ let decode data =
      |> map_err
    and+ first_name = first_name |> map_err
    and+ last_name = last_name |> map_err
-   and+ email =
-     Result.bind email
-     @@ Option.fold ~none:(Ok None) ~some:(fun v ->
-         Contact.parse_email v
-         |> Result.map_error (fun _ -> BadValue v)
-         |> Result.map Option.some)
-     |> map_err
-   and+ mobile =
-     Result.bind mobile
-     @@ Option.fold ~none:(Ok None) ~some:(fun v ->
-         Contact.parse_mobile v
-         |> Result.map_error (fun _ -> BadValue v)
-         |> Result.map Option.some)
-     |> map_err
+   and+ email = none_or_valid Contact.parse_email email
+   and+ mobile = none_or_valid Contact.parse_mobile mobile
    and+ address_id =
-     Result.bind address_id
-     @@ Option.fold ~none:(Ok None) ~some:(fun v ->
+     none_or_valid
+       (fun v ->
          int_of_string_opt v
-         |> Option.to_result ~none:(BadValue v)
-         |> Result.map (fun v -> Some (Location.AddressID v)))
-     |> map_err
+         |> Option.map (fun v -> Location.AddressID v)
+         |> Option.to_result ~none:())
+       address_id
    in
    { id; first_name; last_name; email; mobile; address_id })
   |> Result.map_error Error.many
