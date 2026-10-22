@@ -68,6 +68,8 @@ let dietary_encode = function
 
 let fields : string Rsvp.dict =
   {
+    id = "id";
+    user_id = "user_id";
     status = "status";
     arriving_from = "arriving_from";
     returning_to = "returning_to";
@@ -81,6 +83,8 @@ open Common
 open Fields
 
 let decode data =
+  let id, data = one data fields.id in
+  let user_id, data = one data fields.user_id in
   let status, data = one data fields.status in
   let arriving_from, data = one_opt data fields.arriving_from in
   let returning_to, data = one_opt data fields.returning_to in
@@ -92,6 +96,18 @@ let decode data =
      match data with
      | [] -> Ok ()
      | data -> Error (List.map (fun v -> BadField v) data)
+   and+ id =
+     Result.bind id (fun v ->
+         int_of_string_opt v
+         |> Option.fold ~none:(Error (BadValue v)) ~some:(fun v ->
+             Ok (RsvpID v)))
+     |> map_err
+   and+ user_id =
+     Result.bind user_id (fun v ->
+         int_of_string_opt v
+         |> Option.fold ~none:(Error (BadValue v)) ~some:(fun v ->
+             Ok (User.UserID v)))
+     |> map_err
    and+ status = Result.bind status status_decode |> map_err
    and+ arriving_from =
      Result.bind arriving_from (fun v ->
@@ -116,5 +132,14 @@ let decode data =
              |> Result.map Option.some))
      |> map_err
    in
-   { status; arriving_from; returning_to; transport; dietary; plus_one })
+   {
+     id;
+     user_id;
+     status;
+     arriving_from;
+     returning_to;
+     transport;
+     dietary;
+     plus_one;
+   })
   |> Result.map_error many

@@ -60,17 +60,14 @@ module Repo = struct
             Option.map Contact.mobile_to_string user.mobile
             |> Option.fold ~none:(unset mobile) ~some:(fun v -> mobile := s v);
           ]
-    |> Request.make_zero |> exec db
-    |> Lwt.map @@ Result.map_error Caqti_error.show
+    |> Common.make_zero db
 
   let get ~(db : db) user_id =
     Query.select
       [ id; first_name; last_name; Expr.nullable email; Expr.nullable mobile ]
       ~from:table
     |> Query.where Expr.(id = i @@ User.id_to_int user_id)
-    |> Request.make_one |> find db
-    |> Lwt.map (fun r ->
-        Result.bind (r |> Result.map_error Caqti_error.show) user_decode)
+    |> Common.make_one db user_decode
 
   let list ~(db : db) ~off ~lim =
     Query.select
@@ -78,20 +75,7 @@ module Repo = struct
       ~from:table
     |> Query.offset @@ Expr.i off
     |> Query.limit @@ Expr.i lim
-    |> Request.make_many |> collect_list db
-    |> Lwt.map (fun r ->
-        r
-        |> Result.map_error Caqti_error.show
-        |> Result.map @@ List.map user_decode
-        |> Result.map (fun v ->
-            List.fold_right
-              (fun r acc ->
-                match (r, acc) with
-                | Error v, Error e -> Error (e ^ ", " ^ v)
-                | _, (Error _ as e) | (Error _ as e), _ -> e
-                | Ok v, Ok l -> Ok (v :: l))
-              v (Ok []))
-        |> Result.join)
+    |> Common.make_many db user_decode
 
   let update ~(db : db) (user : User.user) =
     let open Expr in
@@ -106,13 +90,11 @@ module Repo = struct
           |> Option.fold ~none:(unset mobile) ~some:(fun v -> mobile := s v);
         ]
     |> Query.where (id = i @@ User.id_to_int user.id)
-    |> Request.make_zero |> exec db
-    |> Lwt.map @@ Result.map_error Caqti_error.show
+    |> Common.make_zero db
 
   let delete ~(db : db) user_id =
     let open Expr in
     Query.delete ~from:table
     |> Query.where (id = i @@ User.id_to_int user_id)
-    |> Request.make_zero |> exec db
-    |> Lwt.map @@ Result.map_error Caqti_error.show
+    |> Common.make_zero db
 end

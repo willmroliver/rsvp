@@ -18,7 +18,7 @@ let table, Expr.[ id; line_1; line_2; city; country; post_code ] =
         field "post_code" ~constraints:[ not_null () ] ~ty:Type.text;
       ]
 
-let decode_address (id, (line_1, (line_2, (city, (country, (post_code, ()))))))
+let address_decode (id, (line_1, (line_2, (city, (country, (post_code, ()))))))
     =
   let open Proof.Strings in
   let to_opt s = non_empty @@ of_string s in
@@ -35,6 +35,7 @@ let decode_address (id, (line_1, (line_2, (city, (country, (post_code, ()))))))
         country = Option.bind country to_opt |> Option.map (fun v -> Country v);
         post_code = PostCode post_code;
       })
+  |> Result.ok
 
 module Repo = struct
   open Expr
@@ -62,9 +63,7 @@ module Repo = struct
       ]
       ~from:table
     |> Query.where (id = i address_id)
-    |> Request.make_one |> find db
-    |> Lwt.map (fun r ->
-        r |> Result.map_error Caqti_error.show |> Result.map decode_address)
+    |> Common.make_one db address_decode
 
   let list ~(db : db) ~off ~lim =
     Query.select
@@ -74,15 +73,10 @@ module Repo = struct
       ~from:table
     |> Query.offset @@ i off
     |> Query.limit @@ i lim
-    |> Request.make_many |> collect_list db
-    |> Lwt.map (fun r ->
-        r
-        |> Result.map_error Caqti_error.show
-        |> Result.map @@ List.map decode_address)
+    |> Common.make_many db address_decode
 
   let delete ~(db : db) address_id =
     Query.delete ~from:table
     |> Query.where (id = i @@ Location.id_to_int address_id)
-    |> Request.make_zero |> exec db
-    |> Lwt.map @@ Result.map_error Caqti_error.show
+    |> Common.make_zero db
 end

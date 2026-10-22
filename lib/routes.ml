@@ -38,8 +38,8 @@ let start () =
          Dream.post "/admin/users/:id"
          @@ params [ "id" ] Handler.Admin.Users.post;
          (* rsvp *)
-         Dream.get "/rsvp" Handler.Rsvp.get;
-         Dream.post "/rsvp" Handler.Rsvp.post;
+         Dream.get "/rsvp" Handler.Rsvp.Rsvp.get;
+         Dream.post "/rsvp" Handler.Rsvp.Rsvp.post;
          (* ctrl *)
          Dream.post "/theme" (fun req -> Dream.redirect req (Dream.target req));
        ]
