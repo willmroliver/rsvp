@@ -1,5 +1,16 @@
 open Core.Common
 
+module Context = struct
+  type db = Caqti_lwt.connection
+
+  type t = {
+    db : db;
+    log : 'a. ('a, Format.formatter, unit, unit) format4 -> 'a;
+  }
+
+  let make db = { db; log = Dream.log }
+end
+
 module In = struct
   type fields = (string * string) list
   type pipeline = fields -> Dream.handler
@@ -12,7 +23,7 @@ module In = struct
    fun fields req ->
     match reader fields with
     | Ok data -> (
-        match%lwt Dream.sql req (fun db -> core db data) with
+        match%lwt Dream.sql req (fun db -> core (Context.make db) data) with
         | Ok res -> writer req res
         | Error e -> _err req onerr `Internal_Server_Error @@ Some e)
     | Error e -> _err req onerr `Internal_Server_Error @@ Some e

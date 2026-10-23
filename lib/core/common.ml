@@ -14,3 +14,12 @@ module Action = struct
     | Update -> d.update
     | Delete -> d.delete
 end
+
+module type Context = sig
+  type db
+
+  type t = {
+    db : db;
+    log : 'a. ('a, Format.formatter, unit, unit) format4 -> 'a;
+  }
+end

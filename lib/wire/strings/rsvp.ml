@@ -68,7 +68,6 @@ let dietary_encode = function
 
 let fields : string Rsvp.dict =
   {
-    id = "id";
     user_id = "user_id";
     status = "status";
     arriving_from = "arriving_from";
@@ -83,7 +82,6 @@ open Common
 open Fields
 
 let decode data =
-  let id, data = one data fields.id in
   let user_id, data = one data fields.user_id in
   let status, data = one data fields.status in
   let arriving_from, data = one_opt data fields.arriving_from in
@@ -96,12 +94,6 @@ let decode data =
      match data with
      | [] -> Ok ()
      | data -> Error (List.map (fun v -> BadField v) data)
-   and+ id =
-     Result.bind id (fun v ->
-         int_of_string_opt v
-         |> Option.fold ~none:(Error (BadValue v)) ~some:(fun v ->
-             Ok (RsvpID v)))
-     |> map_err
    and+ user_id =
      Result.bind user_id (fun v ->
          int_of_string_opt v
@@ -133,7 +125,6 @@ let decode data =
      |> map_err
    in
    {
-     id;
      user_id;
      status;
      arriving_from;

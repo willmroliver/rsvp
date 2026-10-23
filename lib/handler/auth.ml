@@ -12,11 +12,11 @@ let rec post_request (default : args) fields =
   | [] -> Ok default
   | _ -> Error "unexpected form data"
 
-module Auth = Make (Db.User.Repo)
+module Auth = Make (Context) (Db.User.Repo)
 
 let post =
   In.form
   @@ In.pipe
        (post_request { first_name = ""; last_name = ""; email = "" })
-       Auth.login
+       (fun ctx data -> Auth.login ctx data)
   @@ Out.html Page.Auth.post

@@ -1,3 +1,4 @@
+open Common
 open Domain
 open User
 
@@ -13,9 +14,12 @@ module type UserRepo = sig
   val delete : db:db -> user_id -> (unit, string) result Lwt.t
 end
 
-module Make (UserRepo : UserRepo) = struct
-  let login db ({ first_name; last_name; email } : args) =
-    UserRepo.insert ~db
+module Make (Context : Context) (UserRepo : UserRepo with type db = Context.db) =
+struct
+  open Context
+
+  let login ctx ({ first_name; last_name; email } : args) =
+    UserRepo.insert ~db:ctx.db
       {
         id = UserID 0;
         first_name;

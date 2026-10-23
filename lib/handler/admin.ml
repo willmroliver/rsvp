@@ -1,9 +1,10 @@
 open Persistence.Sqlite3
 open Wire.Strings.Common
 open Common
+open Context
 
 module Users = struct
-  module Service = Core.Admin.Users (Db.User.Repo)
+  module Service = Core.Admin.Users (Context) (Db.User.Repo)
 
   type error = Wire of Error.t | Core of string | Handler of string
 
@@ -23,7 +24,7 @@ module Users = struct
     Listing.args_decode { off = 0; lim = 25 } fields
     |> Result.map_error (fun e -> Wire e)
 
-  let list_handler db data = Service.list db data |> map
+  let list_handler ctx data = Service.list ctx data |> map
 
   let list =
     In.query
@@ -34,7 +35,7 @@ module Users = struct
   let get_request params =
     Wire.Strings.Admin.Users.get_decode params |> Result.map_error wire_error
 
-  let get_handler db data = Service.get db data |> map
+  let get_handler ctx data = Service.get ctx data |> map
 
   let get params =
     In.query ~params
@@ -45,13 +46,13 @@ module Users = struct
   let update_request fields =
     Wire.Strings.User.decode fields |> Result.map_error wire_error
 
-  let update_handler db data = Service.update db data |> map
+  let update_handler ctx data = Service.update ctx data |> map
 
   (* delete *)
   let delete_request fields =
     Wire.Strings.Admin.Users.get_decode fields |> Result.map_error wire_error
 
-  let delete_handler db data = Service.delete db data |> map
+  let delete_handler ctx data = Service.delete ctx data |> map
 
   (* post *)
   let post params =

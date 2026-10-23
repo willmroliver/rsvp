@@ -13,12 +13,15 @@ module type UserRepo = sig
   val delete : db:db -> user_id -> (unit, string) result Lwt.t
 end
 
-module Users (UserRepo : UserRepo) = struct
-  let list db ({ off; lim } : Listing.args) =
-    UserRepo.list ~db ~off ~lim
+module Users (Context : Context) (UserRepo : UserRepo with type db = Context.db) =
+struct
+  open Context
+
+  let list ctx ({ off; lim } : Listing.args) =
+    UserRepo.list ~db:ctx.db ~off ~lim
     |> Lwt.map @@ Result.map (fun users -> { n = List.length users; users })
 
-  let get db id = UserRepo.get ~db id
-  let update db user = UserRepo.update ~db user
-  let delete db id = UserRepo.delete ~db id
+  let get ctx id = UserRepo.get ~db:ctx.db id
+  let update ctx user = UserRepo.update ~db:ctx.db user
+  let delete ctx id = UserRepo.delete ~db:ctx.db id
 end

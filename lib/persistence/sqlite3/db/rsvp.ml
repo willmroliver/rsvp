@@ -6,7 +6,6 @@ open Lwt.Syntax
 let ( table,
       Expr.
         [
-          id;
           user_id;
           status;
           arriving_from;
@@ -19,11 +18,9 @@ let ( table,
     Schema.
       [
         field
-          ~constraints:[ primary_key ~auto_increment:true () ]
-          "id" ~ty:Type.int;
-        field
           ~constraints:
             [
+              primary_key ();
               foreign_key ~table:User.table ~columns:[ User.id ]
                 ~on_update:`CASCADE ~on_delete:`CASCADE ();
             ]
@@ -37,11 +34,10 @@ let ( table,
       ]
 
 let rsvp_decode
-    ( id,
-      ( user_id,
-        ( status,
-          (arriving_from, (returning_to, (transport, (dietary, (plus_one, ())))))
-        ) ) ) =
+    ( user_id,
+      ( status,
+        (arriving_from, (returning_to, (transport, (dietary, (plus_one, ())))))
+      ) ) =
   let open Wire.Strings in
   let open Common in
   let open Rsvp in
@@ -68,7 +64,6 @@ let rsvp_decode
      |> map_err
    in
    {
-     id = RsvpID id;
      user_id = Domain.User.UserID user_id;
      status;
      arriving_from;
@@ -88,8 +83,7 @@ module Repo = struct
       ~values:
         Expr.
           [
-            id := i @@ id_to_int rsvp.id;
-            user_id := i @@ Domain.User.id_to_int rsvp.user_id;
+            user_id := i @@ id_to_int rsvp.user_id;
             status := s @@ status_encode rsvp.status;
             Option.fold ~none:(unset arriving_from)
               ~some:(fun v ->
@@ -113,10 +107,9 @@ module Repo = struct
           ]
     |> Common.make_zero db
 
-  let get ~(db : db) rsvp_id =
+  let get ~(db : db) id =
     Query.select
       [
-        id;
         user_id;
         status;
         Expr.nullable arriving_from;
@@ -126,13 +119,12 @@ module Repo = struct
         Expr.nullable plus_one;
       ]
       ~from:table
-    |> Query.where Expr.(id = i @@ id_to_int rsvp_id)
+    |> Query.where Expr.(user_id = i @@ id_to_int id)
     |> Common.make_one db rsvp_decode
 
   let list ~(db : db) ~off ~lim =
     Query.select
       [
-        id;
         user_id;
         status;
         Expr.nullable arriving_from;
@@ -173,12 +165,12 @@ module Repo = struct
                  |> Option.map Proof.Strings.to_string
                  |> Option.value ~default:"");
           ]
-    |> Query.where Expr.(id = i @@ id_to_int rsvp.id)
+    |> Query.where Expr.(user_id = i @@ id_to_int rsvp.user_id)
     |> Common.make_zero db
 
-  let delete ~(db : db) rsvp_id =
+  let delete ~(db : db) id =
     let open Expr in
     Query.delete ~from:table
-    |> Query.where (id = i @@ id_to_int rsvp_id)
+    |> Query.where (user_id = i @@ id_to_int id)
     |> Common.make_zero db
 end

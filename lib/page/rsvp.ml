@@ -6,7 +6,6 @@ module Wire = Wire.Strings.Rsvp
 let fields =
   Rsvp.zip
     {
-      id = "";
       user_id = "";
       status = "Are you free?";
       arriving_from = "Arriving from";
@@ -52,7 +51,6 @@ let dietary_opts =
 
 let inputs : 'a Rsvp.dict =
   {
-    id = (`Number, [], "", "");
     user_id = (`Number, [], "", "");
     status = (`Select, status_opts, "1", "1/3");
     arriving_from = (`Text, [], "2", "1");
