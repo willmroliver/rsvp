@@ -67,7 +67,7 @@ label > :is(input, select, textarea) {
         --fill: var(--surface);
         --rim: var(--gradient);
         outline: none;
-        box-shadow: var(--ring), var(--glow);
+        box-shadow: var(--glow);
     }
 
     &:user-invalid {

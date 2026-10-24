@@ -5,108 +5,111 @@
   Each scheme gets its own full palette; the roles below are shared.
 */
 
-/* Light: pale lavender paper, deep jewel accents (pastels can't carry text on white) */
+/* Light: pale petal paper, plum ink, deep forget-me-not accents (pastels can't carry text on white) */
 :root {
     color-scheme: light;
 
-    --bg: oklch(97% 0.015 290);
-    --surface: oklch(99.5% 0.004 290);
-    --surface-2: oklch(94% 0.025 290);
-    --border: oklch(35% 0.06 290 / 0.14);
-    --text: oklch(24% 0.05 290);
-    --text-muted: oklch(46% 0.04 290);
-    --shadow: oklch(35% 0.08 290 / 0.14);
+    --bg: oklch(97% 0.012 264);
+    --surface: oklch(99.5% 0.004 264);
+    --surface-2: oklch(94% 0.022 264);
+    --border: oklch(30% 0.04 340 / 0.14);
+    --text: oklch(24% 0.035 340);
+    --text-muted: oklch(46% 0.03 340);
+    --shadow: oklch(30% 0.05 340 / 0.14);
 
-    --purple: oklch(48% 0.17 295);
-    --blue: oklch(50% 0.14 255);
-    --teal: oklch(50% 0.09 200);
-    --green: oklch(55% 0.12 165);
-    --red: oklch(52% 0.19 25);
-    --on-accent: oklch(99% 0.005 290);
+    --violet: oklch(48% 0.15 287);
+    --blue: oklch(52% 0.14 264);
+    --lilac: oklch(55% 0.11 304);
+    --gold: oklch(60% 0.15 62);
+    --green: oklch(50% 0.1 130);
+    --red: oklch(52% 0.18 22);
+    --on-accent: oklch(99% 0.005 264);
 }
 
-/* Dark: deep violet ink, soft pastel accents */
+/* Dark: plum-black earth, glowing petal accents */
 @media (prefers-color-scheme: dark) {
     :root {
         color-scheme: dark;
 
-        --bg: oklch(15% 0.035 290);
-        --surface: oklch(20% 0.04 290);
-        --surface-2: oklch(25% 0.045 290);
-        --border: oklch(85% 0.05 290 / 0.13);
-        --text: oklch(95% 0.012 290);
-        --text-muted: oklch(76% 0.035 290);
+        --bg: oklch(14% 0.025 340);
+        --surface: oklch(19% 0.03 340);
+        --surface-2: oklch(24% 0.035 340);
+        --border: oklch(85% 0.04 264 / 0.13);
+        --text: oklch(95% 0.015 280);
+        --text-muted: oklch(77% 0.035 270);
         --shadow: oklch(0% 0 0 / 0.6);
 
-        --purple: oklch(74% 0.12 295);
-        --blue: oklch(80% 0.09 250);
-        --teal: oklch(84% 0.09 195);
-        --green: oklch(86% 0.1 160);
-        --red: oklch(76% 0.13 25);
-        --on-accent: oklch(16% 0.035 290);
+        --violet: oklch(72% 0.12 287);
+        --blue: oklch(76% 0.11 264);
+        --lilac: oklch(84% 0.06 304);
+        --gold: oklch(80% 0.16 70);
+        --green: oklch(78% 0.11 130);
+        --red: oklch(74% 0.13 18);
+        --on-accent: oklch(15% 0.025 340);
     }
 }
 
 :root:has(#theme-light:checked) {
     color-scheme: light;
 
-    --bg: oklch(97% 0.015 290);
-    --surface: oklch(99.5% 0.004 290);
-    --surface-2: oklch(94% 0.025 290);
-    --border: oklch(35% 0.06 290 / 0.14);
-    --text: oklch(24% 0.05 290);
-    --text-muted: oklch(46% 0.04 290);
-    --shadow: oklch(35% 0.08 290 / 0.14);
+    --bg: oklch(97% 0.012 264);
+    --surface: oklch(99.5% 0.004 264);
+    --surface-2: oklch(94% 0.022 264);
+    --border: oklch(30% 0.04 340 / 0.14);
+    --text: oklch(24% 0.035 340);
+    --text-muted: oklch(46% 0.03 340);
+    --shadow: oklch(30% 0.05 340 / 0.14);
 
-    --purple: oklch(48% 0.17 295);
-    --blue: oklch(50% 0.14 255);
-    --teal: oklch(50% 0.09 200);
-    --green: oklch(55% 0.12 165);
-    --red: oklch(52% 0.19 25);
-    --on-accent: oklch(99% 0.005 290);
+    --violet: oklch(48% 0.15 287);
+    --blue: oklch(52% 0.14 264);
+    --lilac: oklch(55% 0.11 304);
+    --gold: oklch(60% 0.15 62);
+    --green: oklch(50% 0.1 130);
+    --red: oklch(52% 0.18 22);
+    --on-accent: oklch(99% 0.005 264);
 }
 
 :root:has(#theme-dark:checked) {
     color-scheme: dark;
 
-    --bg: oklch(15% 0.035 290);
-    --surface: oklch(20% 0.04 290);
-    --surface-2: oklch(25% 0.045 290);
-    --border: oklch(85% 0.05 290 / 0.13);
-    --text: oklch(95% 0.012 290);
-    --text-muted: oklch(76% 0.035 290);
+    --bg: oklch(14% 0.025 340);
+    --surface: oklch(19% 0.03 340);
+    --surface-2: oklch(24% 0.035 340);
+    --border: oklch(85% 0.04 264 / 0.13);
+    --text: oklch(95% 0.015 280);
+    --text-muted: oklch(77% 0.035 270);
     --shadow: oklch(0% 0 0 / 0.6);
 
-    --purple: oklch(74% 0.12 295);
-    --blue: oklch(80% 0.09 250);
-    --teal: oklch(84% 0.09 195);
-    --green: oklch(86% 0.1 160);
-    --red: oklch(76% 0.13 25);
-    --on-accent: oklch(16% 0.035 290);
+    --violet: oklch(72% 0.12 287);
+    --blue: oklch(76% 0.11 264);
+    --lilac: oklch(84% 0.06 304);
+    --gold: oklch(80% 0.16 70);
+    --green: oklch(78% 0.11 130);
+    --red: oklch(74% 0.13 18);
+    --on-accent: oklch(15% 0.025 340);
 }
 
 /* Roles: style.css reads these, not the palette */
 :root {
-    --accent: var(--teal);
-    --accent-2: var(--purple);
-    --focus: var(--blue);
+    --accent: var(--blue);
+    --accent-2: var(--gold);
+    --focus: var(--violet);
     --danger: var(--red);
     --success: var(--green);
-    --info: var(--blue);
+    --info: var(--violet);
 
-    --gradient: linear-gradient(100deg, var(--purple), var(--blue), var(--teal));
+    --gradient: linear-gradient(100deg, var(--violet), var(--blue), var(--lilac));
     --glow: 0 0.75rem 2rem -1rem color-mix(in oklch, var(--accent) 70%, transparent);
     --elevation: 0 1.5rem 3rem -1.5rem var(--shadow);
     --sheen: linear-gradient(oklch(100% 0 0 / 0.22), transparent 55%);
-    --ring: 0 0 0 4px color-mix(in oklch, var(--accent-2) 12%, transparent);
 
     --field-bg: color-mix(in oklch, var(--surface-2) 55%, var(--surface));
     --field-rim: linear-gradient(color-mix(in oklch, var(--text) 7%, var(--field-bg)) 0 0);
     --field-rim-hover: linear-gradient(color-mix(in oklch, var(--text) 18%, var(--field-bg)) 0 0);
     --aurora:
-        radial-gradient(45% 55% at 10% 5%, color-mix(in oklch, var(--purple) 20%, transparent), transparent),
-        radial-gradient(40% 50% at 90% 15%, color-mix(in oklch, var(--blue) 16%, transparent), transparent),
-        radial-gradient(50% 45% at 65% 100%, color-mix(in oklch, var(--green) 12%, transparent), transparent);
+        radial-gradient(45% 55% at 10% 5%, color-mix(in oklch, var(--blue) 20%, transparent), transparent),
+        radial-gradient(40% 50% at 90% 15%, color-mix(in oklch, var(--violet) 16%, transparent), transparent),
+        radial-gradient(50% 45% at 65% 100%, color-mix(in oklch, var(--gold) 13%, transparent), transparent);
 
     /* Native UI (scrollbars, date pickers, checkboxes, caret) follows suit */
     accent-color: var(--accent);
