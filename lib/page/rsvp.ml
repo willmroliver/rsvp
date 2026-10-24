@@ -1,57 +1,11 @@
 open Core.Rsvp
 open Domain
 open Wire.Strings.Common
-module Wire = Wire.Strings.Rsvp
-
-let fields =
-  Rsvp.zip
-    {
-      user_id = "";
-      status = "Are you free?";
-      arriving_from = "Arriving from";
-      returning_to = "Returning to";
-      transport = "Transport help needed?";
-      dietary = "Dietary requirements";
-      plus_one = "Plus one?";
-    }
-    Wire.fields
-
-let status_opts =
-  Rsvp.fold_status
-    (fun s opts ->
-      let v = Wire.status_encode s in
-      match s with
-      | Rsvp.Coming -> ("Coming!", v) :: opts
-      | Rsvp.MaybeComing -> ("Might make it", v) :: opts
-      | Rsvp.NotComing -> ("Won't be there :(", v) :: opts)
-    []
-
-let transport_opts =
-  Requirement.fold_transport
-    (fun t opts ->
-      let v = Wire.transport_encode t in
-      match t with
-      | Requirement.NoTransport -> ("None", v) :: opts
-      | Requirement.Arriving -> ("Arriving", v) :: opts
-      | Requirement.Leaving -> ("Leaving", v) :: opts
-      | Requirement.BothWays -> ("Both", v) :: opts)
-    []
-
-let dietary_opts =
-  Requirement.fold_dietary
-    (fun d opts ->
-      let v = Wire.dietary_encode d in
-      match d with
-      | Requirement.NoDietary -> ("None", v) :: opts
-      | Requirement.Vegetarian -> ("Vegetarian", v) :: opts
-      | Requirement.Vegan -> ("Vegan", v) :: opts
-      | Requirement.Pescatarian -> ("Pescatarian", v) :: opts
-      | Requirement.Allergies _ -> ("Allergies", v) :: opts)
-    []
+open Common.Model.Rsvp
 
 let inputs : 'a Rsvp.dict =
   {
-    user_id = (`Number, [], "", "");
+    user_id = (`Hidden, [], "", "");
     status = (`Select, status_opts, "1", "1/3");
     arriving_from = (`Text, [], "2", "1");
     returning_to = (`Text, [], "2", "2");
@@ -103,13 +57,30 @@ let pill text =
       ]
     [ txt text ]
 
-let with_err name (err : Error.t option) =
-  match err with
-  | Some (BadField (field, _)) when field = name ->
+let with_err name (res : (Rsvp.rsvp option, Error.t option) result) =
+  match res with
+  | Error (Some (Error.BadField (field, _))) when field = name ->
       [ ("box-shadow", "0 0 2px 1px " ^ var "red"); color @@ var "red" ]
   | _ -> []
 
-let get ctx (err : Error.t option) =
+let get (ctx : Common.Context.t)
+    (res : (Rsvp.rsvp option, Error.t option) result) =
+  let rsvp =
+    match res with
+    | Ok (Some rsvp) -> Wire.Strings.Rsvp.encode rsvp |> Rsvp.map snd
+    | _ ->
+        ({
+           user_id = "";
+           status = "";
+           arriving_from = "";
+           returning_to = "";
+           transport = "";
+           dietary = "";
+           plus_one = "";
+         }
+          : string Rsvp.dict)
+  in
+
   Index.index ctx
   @@ Forms.form ~csrf:ctx.csrf
        ~a:
@@ -123,68 +94,67 @@ let get ctx (err : Error.t option) =
              ];
          ]
   @@ [
-       (let els =
-          Rsvp.fold
-            (fun ((label, name), (kind, opts, row, col)) acc ->
-              (cel ~row ~col
-              @@ [
-                   (match kind with
-                   | `Select ->
-                       Forms.radio ~title:label
-                         ~a:[ style @@ with_err name err ]
-                         name
-                         (List.map
-                            (fun (name, value) ->
-                              ({ name; value } : Forms.selopt))
-                            opts)
-                   | (`Text | `Number) as kind ->
-                       Forms.field ~title:label
+       Rsvp.fold
+         (fun (v, ((label, name), (kind, opts, row, col))) acc ->
+           cel ~row ~col
+             [
+               (match kind with
+               | `Select ->
+                   Forms.radio ~title:label
+                     ~a:[ style @@ with_err name res ]
+                     ~checked:v name
+                     (List.map
+                        (fun (name, value) -> ({ name; value } : Forms.selopt))
+                        opts)
+               | (`Text | `Number) as kind ->
+                   Forms.field ~title:label
+                     ~a_input:
+                       [
+                         (let open Wire.Strings.Rsvp in
+                          a_placeholder
+                          @@
+                          match name with
+                          | name
+                            when name = fields.arriving_from
+                                 || name = fields.returning_to ->
+                              "E.g. \"London\", \"Milano\""
+                          | _ -> "");
+                         style @@ with_err name res;
+                         a_value v;
+                       ]
+                     name kind
+               | `Checkbox ->
+                   flex ~dir:Row
+                     ~a:[ a_class Toggle.container_cl ]
+                     ~style:
+                       [ ("align-items", "end"); Css.gap @@ Css.var "gap-sm" ]
+                     [
+                       Forms.checkbox
+                         ~a:
+                           (Toggle.ctrl ()
+                           @ [ Css.style [ ("flex-grow", "1") ] ])
+                         ~checked:(v <> "") ~title:label "";
+                       Forms.field
+                         ~a:
+                           [
+                             a_class Toggle.on_cl;
+                             Css.style [ ("flex-grow", "1") ];
+                           ]
                          ~a_input:
                            [
-                             (a_placeholder
-                             @@
-                             match name with
-                             | name
-                               when name = Wire.fields.arriving_from
-                                    || name = Wire.fields.returning_to ->
-                                 "E.g. \"London\", \"Milano\""
-                             | _ -> "");
-                             style @@ with_err name err;
+                             a_placeholder "Tell us who you'd like to bring";
+                             a_value v;
                            ]
-                         name kind
-                   | `Checkbox ->
-                       flex ~dir:Row
-                         ~a:[ a_class Toggle.container ]
-                         ~style:
-                           [
-                             ("align-items", "end"); Css.gap @@ Css.var "gap-sm";
-                           ]
-                         [
-                           Forms.checkbox
-                             ~a:
-                               [
-                                 a_class Toggle.input;
-                                 Css.style [ ("flex-grow", "1") ];
-                               ]
-                             ~title:label "";
-                           Forms.field
-                             ~a:
-                               [
-                                 a_class Toggle.on;
-                                 Css.style [ ("flex-grow", "1") ];
-                               ]
-                             ~a_input:
-                               [
-                                 a_placeholder "Tell us who you'd like to bring";
-                               ]
-                             name `Text;
-                         ]);
-                 ])
-              :: acc)
-            [] (Rsvp.zip fields inputs)
-        in
-        els |> grid ~cols:"auto" ~style:[ gap @@ var "gap-xl" ]);
+                         name `Text;
+                     ]
+               | `Hidden -> Forms.field ~a_input:[ a_value "1" ] name `Hidden);
+             ]
+           :: acc)
+         []
+         (Rsvp.zip fields inputs |> Rsvp.zip rsvp)
+       |> grid ~cols:"auto" ~style:[ gap @@ var "gap-xl" ];
      ]
+  @ [ Common.Action.field ~kind:Create () ]
 
 let post ctx
     ({ status; arriving_from; returning_to; transport; dietary; plus_one } :

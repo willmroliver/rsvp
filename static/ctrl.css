@@ -1,8 +1,3 @@
-:root:not(:has(#edit:checked)) .editor.on,
-:root:has(#edit:checked) .editor.off {
-    display: none !important;
-}
-
 .toggle:not(:has(.toggle.ctrl:checked)) .toggle.on,
 .toggle:has(.toggle.ctrl:checked) .toggle.off {
     display: none !important;

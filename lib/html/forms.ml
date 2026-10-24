@@ -40,16 +40,21 @@ let options ?title ?(a_label = []) ?(a_select = []) ?(a_option = []) name opts =
            opts;
     ]
 
-let checkbox ?(a = []) ~title name =
+let checkbox ?(a = []) ?(checked = false) ~title name =
   let id = next_id name in
   label
     ~a:[ a_label_for id ]
     [
-      input ~a:([ a_input_type `Checkbox; a_name name; a_id id ] @ a) ();
+      input
+        ~a:
+          ([ a_input_type `Checkbox; a_name name; a_id id ]
+          @ a
+          @ if checked then [ a_checked () ] else [])
+        ();
       txt title;
     ]
 
-let radio ?title ?(a = []) ?(a_input = []) name opts =
+let radio ?title ?(a = []) ?(a_input = []) ?(checked = "") name opts =
   fieldset ~legend:(legend [ txt @@ Option.value ~default:name title ]) ~a
   @@ List.map
        (fun o ->
@@ -59,7 +64,8 @@ let radio ?title ?(a = []) ?(a_input = []) name opts =
              input
                ~a:
                  ([ a_input_type `Radio; a_name name; a_value o.value; a_id id ]
-                 @ a_input)
+                 @ a_input
+                 @ if checked = o.value then [ a_checked () ] else [])
                ();
              txt o.name;
            ])

@@ -20,7 +20,7 @@ let ( table,
         field
           ~constraints:
             [
-              primary_key ();
+              primary_key ~on_conflict:`REPLACE ();
               foreign_key ~table:User.table ~columns:[ User.id ]
                 ~on_update:`CASCADE ~on_delete:`CASCADE ();
             ]
@@ -58,9 +58,7 @@ let rsvp_decode
    and+ plus_one =
      plus_one
      |> Option.fold ~none:(Ok None) ~some:(fun v ->
-         v |> of_string |> non_empty
-         |> Option.to_result ~none:(Error.BadValue v)
-         |> Result.map Option.some)
+         v |> of_string |> non_empty |> Result.ok)
      |> map_err
    in
    {
@@ -73,6 +71,15 @@ let rsvp_decode
      plus_one;
    })
   |> Result.map_error (fun v -> v |> Error.many |> Error.to_string)
+
+let user_rsvp_decode (user_id, (first_name, (last_name, rsvp))) =
+  match
+    ( User.user_decode (user_id, (first_name, (last_name, (None, (None, ()))))),
+      rsvp_decode (user_id, rsvp) )
+  with
+  | Ok user, Ok rsvp -> Ok (user, rsvp)
+  | Ok _, Error e | Error e, Ok _ -> Error e
+  | Error a, Error b -> Error (a ^ ", " ^ b)
 
 module Repo = struct
   type db = Caqti_lwt.connection
@@ -99,18 +106,22 @@ module Repo = struct
               rsvp.returning_to;
             transport := s @@ transport_encode rsvp.transport;
             dietary := s @@ dietary_encode rsvp.dietary;
-            plus_one :=
-              s
-              @@ (rsvp.plus_one
-                 |> Option.map Proof.Strings.to_string
-                 |> Option.value ~default:"");
+            Option.fold ~none:(unset plus_one)
+              ~some:(fun v -> plus_one := s @@ Proof.Strings.to_string v)
+              rsvp.plus_one;
           ]
     |> Common.make_zero db
 
-  let get ~(db : db) id =
+  let select (db : db) =
+    let user_pk, user_pk_ref = Expr.as_ ~name:"user_pk" User.id in
+    let fname, fname_ref = Expr.as_ ~name:"first_name" User.first_name in
+    let lname, lname_ref = Expr.as_ ~name:"last_name" User.last_name in
+
     Query.select
       [
         user_id;
+        fname_ref;
+        lname_ref;
         status;
         Expr.nullable arriving_from;
         Expr.nullable returning_to;
@@ -119,24 +130,20 @@ module Repo = struct
         Expr.nullable plus_one;
       ]
       ~from:table
+    |> Query.join
+         (Query.select ~from:User.table Expr.[ user_pk; fname; lname ])
+         ~on:Expr.(user_id = user_pk_ref)
+
+  let get ~(db : db) id =
+    select db
     |> Query.where Expr.(user_id = i @@ id_to_int id)
-    |> Common.make_one db rsvp_decode
+    |> Common.make_one db user_rsvp_decode
 
   let list ~(db : db) ~off ~lim =
-    Query.select
-      [
-        user_id;
-        status;
-        Expr.nullable arriving_from;
-        Expr.nullable returning_to;
-        transport;
-        dietary;
-        Expr.nullable plus_one;
-      ]
-      ~from:table
+    select db
     |> Query.offset @@ Expr.i off
     |> Query.limit @@ Expr.i lim
-    |> Common.make_many db rsvp_decode
+    |> Common.make_many db user_rsvp_decode
 
   let update ~(db : db) (rsvp : rsvp) =
     let open Wire.Strings.Rsvp in
@@ -146,24 +153,20 @@ module Repo = struct
           [
             status := s @@ status_encode rsvp.status;
             Option.fold ~none:(unset arriving_from)
-              ~some:(fun v ->
-                match v with
+              ~some:(function
                 | Domain.Location.City v ->
                     arriving_from := s @@ Proof.Strings.to_string v)
               rsvp.arriving_from;
             Option.fold ~none:(unset returning_to)
-              ~some:(fun v ->
-                match v with
+              ~some:(function
                 | Domain.Location.City v ->
                     returning_to := s @@ Proof.Strings.to_string v)
               rsvp.returning_to;
             transport := s @@ transport_encode rsvp.transport;
             dietary := s @@ dietary_encode rsvp.dietary;
-            plus_one :=
-              s
-              @@ (rsvp.plus_one
-                 |> Option.map Proof.Strings.to_string
-                 |> Option.value ~default:"");
+            Option.fold ~none:(unset plus_one)
+              ~some:(fun v -> plus_one := s @@ Proof.Strings.to_string v)
+              rsvp.plus_one;
           ]
     |> Query.where Expr.(user_id = i @@ id_to_int rsvp.user_id)
     |> Common.make_zero db

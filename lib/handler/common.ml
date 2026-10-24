@@ -1,4 +1,20 @@
 open Core.Common
+open Wire.Strings.Common
+
+type error = Wire of Error.t | Core of string | Handler of string
+
+let map_core_error res =
+  res
+  |> Lwt.map
+     @@ Result.map_error (fun e ->
+         Dream.log "CORE ERROR - %s" e;
+         Core e)
+
+let map_wire_error e =
+  e
+  |> Result.map_error (fun e ->
+      Dream.log "WIRE ERROR - %s" @@ Error.to_string e;
+      Wire e)
 
 module Context = struct
   type db = Caqti_lwt.connection
@@ -35,7 +51,9 @@ module In = struct
    fun req ->
     match%lwt Dream.form req with
     | `Ok fields -> req |> pipeline @@ fields @ params
-    | _ -> _err req None `Bad_Request None
+    | _ ->
+        Dream.log "WIRE ERROR - Failed to parse form";
+        _err req None `Bad_Request None
 
   let action (map : Action.kind -> pipeline option) =
    fun fields req ->
@@ -45,19 +63,20 @@ module In = struct
         match map kind with
         | Some pipeline -> pipeline fields req
         | None -> _err req None `Bad_Request None)
-    | Error _ -> _err req None `Bad_Request None
+    | Error _ ->
+        Dream.log "WIRE ERROR - Unrecognised action kind";
+        _err req None `Bad_Request None
 end
 
 module Out = struct
-  open Page.Common
-
   let context (request : Dream.request) =
     ({
        csrf = Dream.csrf_token request;
        target = Dream.target request;
        theme = Ctrl.Theme.from_session request;
+       log = Dream.log;
      }
-      : Context.t)
+      : Page.Common.Context.t)
 
   let html page (request : Dream.request) response =
     Dream.html @@ page (context request) response

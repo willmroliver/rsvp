@@ -1,7 +1,7 @@
 module Error = struct
   type t =
     | Many of t list
-    | BadValue of string
+    | BadValue of (string * string)
     | BadField of (string * string)
     | DuplicateField of string
     | MissingRequired of string
@@ -10,8 +10,8 @@ module Error = struct
   let rec to_string e =
     match e with
     | Many s -> String.concat ", " @@ List.map to_string s
-    | BadValue s -> "Bad Value: " ^ s
-    | BadField (s, t) -> "Bad Field: " ^ String.concat ", " [ s; t ]
+    | BadValue (f, v) -> "Bad Value: " ^ f ^ ", " ^ v
+    | BadField (f, v) -> "Bad Value: " ^ f ^ ", " ^ v
     | DuplicateField s -> "Duplicate: " ^ s
     | MissingRequired s -> "Missing Required: " ^ s
     | Unknown -> "Unknown"
@@ -68,11 +68,11 @@ module Listing = struct
     | (name, n) :: tail when name = field.off -> (
         match int_of_string_opt n with
         | Some n -> args_decode { default with off = n } tail
-        | None -> Error (BadValue n))
+        | None -> Error (BadValue (name, n)))
     | (name, n) :: tail when name = field.lim -> (
         match int_of_string_opt n with
         | Some n -> args_decode { default with lim = n } tail
-        | None -> Error (BadValue n))
+        | None -> Error (BadValue (name, n)))
     | [] -> Ok default
     | kv :: tail -> Error (BadField kv)
 end

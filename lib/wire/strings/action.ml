@@ -8,7 +8,7 @@ let kind_decode = function
   | "read" -> Ok Read
   | "update" -> Ok Update
   | "delete" -> Ok Delete
-  | v -> Error (BadValue v)
+  | v -> Error (BadValue (field, v))
 
 let kind_encode = function
   | Create -> "create"
@@ -21,7 +21,8 @@ let encode k = [ (field, kind_encode k) ]
 let decode ?kind = function
   | [ (f, k) ] when f = field ->
       Option.fold ~none:(kind_decode k)
-        ~some:(fun v -> if kind_encode v = k then Ok v else Error (BadValue k))
+        ~some:(fun v ->
+          if kind_encode v = k then Ok v else Error (BadValue (f, k)))
         kind
   | kv :: l -> Error (BadField kv)
   | [] -> Error (MissingRequired field)

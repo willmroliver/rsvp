@@ -209,8 +209,6 @@ nav :is(a, button, [type="submit"]) {
     box-shadow: var(--glow);
 }
 
-/* Frosted panel; Css.glass does the same inline. animation.css finds either
-   one, but not a backdrop-filter set in some other stylesheet rule */
 .glass {
     background: color-mix(in oklch, var(--surface) var(--glass-tint, 20%), transparent);
     backdrop-filter: blur(var(--glass-blur, 8px));

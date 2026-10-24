@@ -40,41 +40,25 @@ module Theme = struct
         ]
 end
 
-module Editor = struct
-  let input_id = "edit"
-  let editor_cl = "editor"
-  let on_cl = "on"
-  let off_cl = "off"
-
-  let state =
-    input ~a:[ a_input_type `Checkbox; a_hidden `Hidden; a_id input_id ]
-
-  let toggle ?(a = []) content =
-    label ~a:([ a_label_for input_id; a_class [ "button" ] ] @ a) content
-
-  open Html
-  open Components
-  open Css
-
-  let make ?toggle:t content =
-    div ~a:[ a_class [ editor_cl ] ]
-    @@ Option.fold ~none:content
-         ~some:(fun t ->
-           [
-             flex ~dir:Col
-               ~style:[ gap @@ var "gap-sm" ]
-               (div ~a:[ style [ ("margin-left", "auto") ] ] [ toggle t ]
-               :: content);
-           ])
-         t
-
-  let on content = slot ~a:[ a_class [ editor_cl; on_cl ] ] content
-  let off content = slot ~a:[ a_class [ editor_cl; off_cl ] ] content
-end
-
 module Toggle = struct
-  let container = [ "toggle" ]
-  let input = [ "toggle"; "ctrl" ]
-  let on = [ "toggle"; "on"; "slide-in-top" ]
-  let off = [ "toggle"; "off"; "slide-in-top" ]
+  let container_cl = [ "toggle" ]
+  let ctrl_cl = [ "toggle"; "ctrl" ]
+  let on_cl = [ "toggle"; "on" ]
+  let off_cl = [ "toggle"; "off" ]
+
+  let ctrl ?(checked = false) () =
+    a_class ctrl_cl :: (if checked then [ a_checked () ] else [])
+
+  let make ?(a = []) content = div ~a:(a_class container_cl :: a) content
+
+  let button ?(a = []) ?checked content =
+    label
+      ~a:(a_class [ "button" ] :: a)
+      (input
+         ~a:(a_input_type `Checkbox :: a_hidden `Hidden :: ctrl ?checked ())
+         ()
+      :: content)
+
+  let on ?(a = []) content = slot ~a:(a_class on_cl :: a) content
+  let off ?(a = []) content = slot ~a:(a_class off_cl :: a) content
 end

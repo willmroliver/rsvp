@@ -1,14 +1,11 @@
 /* All motion lives here, and only for people who haven't asked for less */
 
-/* Typed so it computes on the element that sets it: descendants inherit that
-   element's delay rather than recalculating from their own sibling-index() */
 @property --rise-delay {
     syntax: "<time>";
     inherits: true;
     initial-value: 0s;
 }
 
-/* Typed so a field's fill (form.css) can fade between states */
 @property --fill {
     syntax: "<color>";
     inherits: false;
@@ -32,12 +29,6 @@
         animation-delay: var(--rise-delay);
     }
 
-    /* Fading or blurring an element cuts any glass inside it off from the
-       page behind, so it can't frost until the animation ends. A container
-       holding glass only moves; each part of it without glass (and each glass
-       panel itself) still fades in. :where keeps this below any other rule.
-       Glass is found by Css.glass's inline style, or the .glass class; a
-       backdrop-filter set in a stylesheet rule needs adding to each list */
     body > * > :has(.glass, [style*="backdrop-filter"]) {
         animation-name: settle;
     }
@@ -61,7 +52,6 @@
         transition: outline-offset var(--dur-fast) var(--ease-out);
     }
 
-    /* The rim can't fade (it's an image) but the fill and ring can */
     :is(input, select, textarea, label) {
         transition:
             --fill var(--dur-fast) ease,

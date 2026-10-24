@@ -2,11 +2,22 @@ open Core.Rsvp
 open Domain
 open Common.Error
 
+let fields : string Rsvp.dict =
+  {
+    user_id = "user_id";
+    status = "status";
+    arriving_from = "arriving_from";
+    returning_to = "returning_to";
+    transport = "transport";
+    dietary = "dietary";
+    plus_one = "plus_one";
+  }
+
 let status_decode = function
   | "coming" -> Ok Rsvp.Coming
   | "maybe_coming" -> Ok Rsvp.MaybeComing
   | "not_coming" -> Ok Rsvp.NotComing
-  | v -> Error (BadValue v)
+  | v -> Error (BadValue (fields.status, v))
 
 let status_encode = function
   | Rsvp.Coming -> "coming"
@@ -15,15 +26,22 @@ let status_encode = function
 
 let city_decode s =
   Proof.Strings.non_empty @@ Proof.Strings.of_string s
-  |> Option.fold ~none:(Error (BadValue "")) ~some:(fun c ->
-      Ok (Location.City c))
+  |> Option.fold
+       ~none:
+         (Error
+            (BadValue (fields.arriving_from ^ "|" ^ fields.returning_to, "")))
+       ~some:(fun c -> Ok (Location.City c))
+
+let city_encode =
+  Option.fold ~none:"" ~some:(fun v ->
+      match v with Location.City v -> v |> Proof.Strings.to_string)
 
 let transport_decode = function
   | "" | "none" -> Ok Requirement.NoTransport
   | "arriving" -> Ok Requirement.Arriving
   | "leaving" -> Ok Requirement.Leaving
   | "both" -> Ok Requirement.BothWays
-  | s -> Error (BadValue s)
+  | s -> Error (BadValue (fields.transport, s))
 
 let transport_encode = function
   | Requirement.NoTransport -> "none"
@@ -39,13 +57,13 @@ let dietary_decode = function
   | s -> (
       match String.split_on_char ',' s with
       | key :: l ->
-          if key <> "allergies" then Error (BadValue key)
+          if key <> "allergies" then Error (BadValue (fields.dietary, ""))
           else
             List.map
               (fun a ->
                 match Proof.Strings.alpha @@ Proof.Strings.of_string a with
                 | Some a -> Ok a
-                | None -> Error a)
+                | None -> Error (fields.dietary, a))
               l
             |> List.fold_left
                  (fun acc opt ->
@@ -56,7 +74,7 @@ let dietary_decode = function
                    | (Error _ as e), _ -> e
                    | _ -> Error Unknown)
                  (Ok (Requirement.Allergies []))
-      | [] -> Error (BadValue s))
+      | [] -> Error (BadValue (fields.dietary, "")))
 
 let dietary_encode = function
   | Requirement.NoDietary -> "none"
@@ -65,17 +83,6 @@ let dietary_encode = function
   | Requirement.Vegan -> "vegan"
   | Requirement.Allergies l ->
       "allergies," ^ String.concat "," (List.map Proof.Strings.to_string l)
-
-let fields : string Rsvp.dict =
-  {
-    user_id = "user_id";
-    status = "status";
-    arriving_from = "arriving_from";
-    returning_to = "returning_to";
-    transport = "transport";
-    dietary = "dietary";
-    plus_one = "plus_one";
-  }
 
 open Domain.Rsvp
 open Common
@@ -97,8 +104,9 @@ let decode data =
    and+ user_id =
      Result.bind user_id (fun v ->
          int_of_string_opt v
-         |> Option.fold ~none:(Error (BadValue v)) ~some:(fun v ->
-             Ok (User.UserID v)))
+         |> Option.fold
+              ~none:(Error (BadValue (fields.user_id, v)))
+              ~some:(fun v -> Ok (User.UserID v)))
      |> map_err
    and+ status = Result.bind status status_decode |> map_err
    and+ arriving_from =
@@ -120,7 +128,7 @@ let decode data =
          v
          |> Option.fold ~none:(Ok None) ~some:(fun v ->
              Proof.Strings.of_string v |> Proof.Strings.non_empty
-             |> Option.to_result ~none:(BadValue v)
+             |> Option.to_result ~none:(BadValue (fields.plus_one, v))
              |> Result.map Option.some))
      |> map_err
    in
@@ -134,3 +142,25 @@ let decode data =
      plus_one;
    })
   |> Result.map_error many
+
+let encode
+    ({
+       user_id;
+       status;
+       arriving_from;
+       returning_to;
+       transport;
+       dietary;
+       plus_one;
+     } :
+      Rsvp.rsvp) =
+  Rsvp.zip fields
+    {
+      user_id = string_of_int @@ id_to_int user_id;
+      status = status_encode status;
+      arriving_from = city_encode arriving_from;
+      returning_to = city_encode returning_to;
+      transport = transport_encode transport;
+      dietary = dietary_encode dietary;
+      plus_one = Option.fold ~none:"" ~some:Proof.Strings.to_string plus_one;
+    }

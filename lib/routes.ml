@@ -23,23 +23,26 @@ let start () =
   @@ Dream.sql_pool db_uri @@ Dream.logger @@ Dream.memory_sessions
   @@ Ctrl.Theme.middleware
   @@ Dream.router
-       [
-         (* static *)
-         Dream.get "/static/**" @@ Dream.static "static";
-         Dream.get "/mdi/**" @@ Dream.static "node_modules/@mdi/font";
-         (* root *)
-         Dream.get "/" Handler.Home.get;
-         (* auth *)
-         Dream.get "/login" Handler.Home.get;
-         Dream.post "/login" Handler.Auth.post;
-         (* admin *)
-         Dream.get "/admin/users" Handler.Admin.Users.list;
-         Dream.get "/admin/users/:id" @@ params [ "id" ] Handler.Admin.Users.get;
-         Dream.post "/admin/users/:id"
-         @@ params [ "id" ] Handler.Admin.Users.post;
-         (* rsvp *)
-         Dream.get "/rsvp" Handler.Rsvp.Rsvp.get;
-         Dream.post "/rsvp" Handler.Rsvp.Rsvp.post;
-         (* ctrl *)
-         Dream.post "/theme" (fun req -> Dream.redirect req (Dream.target req));
-       ]
+       (let open Handler in
+        [
+          (* static *)
+          Dream.get "/static/**" @@ Dream.static "static";
+          Dream.get "/mdi/**" @@ Dream.static "node_modules/@mdi/font";
+          (* root *)
+          Dream.get "/" Home.get;
+          (* auth *)
+          Dream.get "/login" Home.get;
+          Dream.post "/login" Auth.post;
+          (* admin *)
+          Dream.get "/admin/users" Admin.Users.Get.list;
+          Dream.get "/admin/users/new" Admin.Users.Get.create;
+          Dream.post "/admin/users" Admin.Users.Post.create;
+          Dream.get "/admin/users/:id" @@ params [ "id" ] Admin.Users.Get.get;
+          Dream.post "/admin/users/:id" @@ params [ "id" ] Admin.Users.Post.post;
+          Dream.get "/admin/rsvp" Admin.Rsvp.Get.list;
+          (* rsvp *)
+          Dream.get "/rsvp/new" Handler.Rsvp.Get.create;
+          Dream.post "/rsvp/new" Handler.Rsvp.Post.create;
+          (* ctrl *)
+          Dream.post "/theme" (fun req -> Dream.redirect req (Dream.target req));
+        ])

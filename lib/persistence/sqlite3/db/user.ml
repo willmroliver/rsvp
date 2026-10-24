@@ -33,13 +33,13 @@ let user_decode (id, (first_name, (last_name, (email, (mobile, ()))))) =
      email
      |> Option.fold ~none:(Ok None) ~some:(fun v ->
          v |> Contact.parse_email |> Result.map Option.some
-         |> Result.map_error (fun _ -> Error.BadValue v))
+         |> Result.map_error (fun _ -> Error.BadValue (field.email, v)))
      |> map_err
    and+ mobile =
      mobile
      |> Option.fold ~none:(Ok None) ~some:(fun v ->
          v |> Contact.parse_mobile |> Result.map Option.some
-         |> Result.map_error (fun _ -> Error.BadValue v))
+         |> Result.map_error (fun _ -> Error.BadValue (field.mobile, v)))
      |> map_err
    in
    ({ id; first_name; last_name; email; mobile; address_id = None } : User.user))

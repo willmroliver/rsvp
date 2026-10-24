@@ -2,42 +2,38 @@ open Common
 open Context
 open Domain
 open Wire.Strings.Common
+module Service = Core.Rsvp.Make (Context) (Persistence.Sqlite3.Db.Rsvp.Repo)
 
-module Rsvp = struct
-  module Service = Core.Rsvp.Make (Context) (Persistence.Sqlite3.Db.Rsvp.Repo)
+module Get = struct
+  let get ?(arg = Ok None) = fun req -> Out.html Page.Rsvp.get req arg
+  let onerr req err = get
 
-  type error = Core of string | Wire of Error.t
+  let create =
+    In.query
+    @@ In.pipe Result.ok (fun ctx _ ->
+        (* @TODO - remove hardcoded user ID once auth flow added *)
+        Service.get_opt ctx (User.UserID 1) |> Lwt.map Result.ok)
+    @@ Out.html Page.Rsvp.get
+end
 
-  let get ?(err = None) = fun req -> Out.html Page.Rsvp.get req err
+module Post = struct
+  let post_request data = data |> Wire.Strings.Rsvp.decode |> map_wire_error
+  let post_handler svc ctx data = svc ctx data |> map_core_error
 
-  let post_request data =
-    data |> Wire.Strings.Rsvp.decode
-    |> Result.map_error (fun e ->
-        Dream.log "WIRE ERROR: %s" @@ Error.to_string e;
-        Wire e)
+  let onerr req err =
+    Get.get
+      ~arg:
+        (Option.fold ~none:(Ok None)
+           ~some:(function Wire e -> Error (Some e) | _ -> Error None)
+           err)
+      req
 
-  let post_handler ctx data =
-    Service.insert ctx data
-    |> Lwt.map
-       @@ Result.map_error (fun e ->
-           Dream.log "CORE ERROR: %s" e;
-           Core e)
-
-  let post =
+  let create =
     In.form @@ In.action
     @@ function
     | Create ->
         Option.some
-        @@ In.pipe
-             ~onerr:(fun req err ->
-               get
-                 ~err:
-                   (Option.bind err (fun err ->
-                        match err with Core e -> None | Wire e -> Some e))
-                 req)
-             post_request post_handler
-        @@ Out.redirect Page.Home.get
+        @@ In.pipe ~onerr post_request (post_handler Service.create)
+        @@ Out.redirect ~target:"/" Page.Home.get
     | _ -> None
-
-  open Core.Common.Action
 end

@@ -18,7 +18,6 @@ fieldset:has([type="radio"]) {
     gap: var(--gap-sm);
 }
 
-/* Small, airy eyebrows above each field */
 legend,
 label {
     display: block;
@@ -33,14 +32,11 @@ legend {
     padding: 0 0 var(--p-sm);
 }
 
-/* Label above its field, whether sibling (Forms.field) or wrapped */
 label + :is(input, select, textarea),
 label > :is(input, select, textarea) {
     margin-block-start: var(--m-sm);
 }
 
-/* Fill and rim are two background layers, so states only swap --fill and --rim
-   and the rim can be a gradient that follows the border-radius */
 :where(input:not([type="radio"], [type="checkbox"], [type="submit"], [type="button"]), select, textarea) {
     --fill: var(--field-bg);
     --rim: var(--field-rim);
@@ -85,8 +81,7 @@ textarea {
     field-sizing: content;
 }
 
-/* Native select arrows ignore the theme; a drawn chevron rides on top of the
-   fill and rim layers */
+/* Native select arrows ignore the theme; draw a chevron instead */
 select {
     appearance: none;
     padding-inline-end: 2.75em;
@@ -97,9 +92,8 @@ select {
         var(--rim) border-box;
 }
 
-/* <label><input type=radio> Joyfully accepts</label> becomes a selectable
-   tile, with the same fill and rim, lit when chosen */
-label:has(> :is([type="radio"], [type="checkbox"])) {
+/* <label><input type=radio> Joyfully accepts</label> becomes a selectable tile */
+label:has(> :is([type="radio"], [type="checkbox"]):not([hidden])) {
     --fill: var(--field-bg);
     --rim: var(--field-rim);
 
@@ -138,9 +132,6 @@ label:has(> :is([type="radio"], [type="checkbox"])) {
     margin: 0;
 }
 
-/* ---------- Buttons ---------- */
-
-/* Glossy pill: a sheen over the gradient, which slides on hover */
 :is(button, [type="submit"], [type="button"], .button) {
     display: inline-flex;
     align-items: center;
@@ -170,8 +161,6 @@ label:has(> :is([type="radio"], [type="checkbox"])) {
     }
 }
 
-/* A form's own submit gets an arrow that nudges on hover (not the nav's theme
-   toggle or row actions, which are forms too) */
 form:not(nav form, td form) > [type="submit"]:last-child {
     &::after {
         content: "→";
@@ -185,10 +174,6 @@ form:not(nav form, td form) > [type="submit"]:last-child {
     }
 }
 
-/* ---------- Tones ---------- */
-
-/* Solid role colour with readable text: on-accent flips light/dark per scheme.
-   Declared after buttons so a tone replaces the default gradient */
 .accent {
     --tone: var(--accent);
 }

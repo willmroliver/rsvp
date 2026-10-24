@@ -100,8 +100,6 @@
     --sheen: linear-gradient(oklch(100% 0 0 / 0.22), transparent 55%);
     --ring: 0 0 0 4px color-mix(in oklch, var(--accent-2) 12%, transparent);
 
-    /* Form fields: an opaque fill with a faint rim (form.css swaps the rim
-       for --gradient on focus) */
     --field-bg: color-mix(in oklch, var(--surface-2) 55%, var(--surface));
     --field-rim: linear-gradient(color-mix(in oklch, var(--text) 7%, var(--field-bg)) 0 0);
     --field-rim-hover: linear-gradient(color-mix(in oklch, var(--text) 18%, var(--field-bg)) 0 0);
