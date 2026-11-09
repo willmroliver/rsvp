@@ -25,25 +25,20 @@ let table, Expr.[ id; first_name; last_name; email; mobile; address_id ] =
 
 let user_decode (id, (first_name, (last_name, (email, (mobile, ()))))) =
   let open Wire.Strings.Common in
+  let open Wire.Strings.Basic in
   let open Wire.Strings.User in
-  (let+ id = Ok (User.UserID id)
-   and+ first_name = Ok first_name
-   and+ last_name = Ok last_name
-   and+ email =
-     email
-     |> Option.fold ~none:(Ok None) ~some:(fun v ->
-         v |> Contact.parse_email |> Result.map Option.some
-         |> Result.map_error (fun _ -> Error.BadValue (field.email, v)))
-     |> map_err
-   and+ mobile =
-     mobile
-     |> Option.fold ~none:(Ok None) ~some:(fun v ->
-         v |> Contact.parse_mobile |> Result.map Option.some
-         |> Result.map_error (fun _ -> Error.BadValue (field.mobile, v)))
-     |> map_err
-   in
-   ({ id; first_name; last_name; email; mobile; address_id = None } : User.user))
-  |> Result.map_error (fun v -> Error.many v |> Error.to_string)
+  let open Error in
+  Decode.(
+    let+ id = Ok (User.UserID id)
+    and+ first_name = Ok first_name
+    and+ last_name = Ok last_name
+    and+ email = email |> option_decode @@ Wire.Strings.Contact.email_decode
+    and+ mobile =
+      mobile |> option_decode @@ Wire.Strings.Contact.mobile_decode
+    in
+    ({ id; first_name; last_name; email; mobile; address_id = None }
+      : User.user))
+  |> Result.map_error Error.to_string
 
 module Repo = struct
   type db = Caqti_lwt.connection

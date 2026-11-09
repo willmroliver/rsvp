@@ -1,0 +1,3 @@
+(test
+ (name calendar)
+ (libraries rsvp))

@@ -1,7 +1,7 @@
 module Error = struct
   type t =
     | Many of t list
-    | BadValue of (string * string)
+    | BadValue of string
     | BadField of (string * string)
     | DuplicateField of string
     | MissingRequired of string
@@ -10,27 +10,46 @@ module Error = struct
   let rec to_string e =
     match e with
     | Many s -> String.concat ", " @@ List.map to_string s
-    | BadValue (f, v) -> "Bad Value: " ^ f ^ ", " ^ v
-    | BadField (f, v) -> "Bad Value: " ^ f ^ ", " ^ v
+    | BadValue v -> "Bad Value: " ^ v
+    | BadField (f, v) -> "Bad Field: " ^ f ^ ", " ^ v
     | DuplicateField s -> "Duplicate: " ^ s
     | MissingRequired s -> "Missing Required: " ^ s
     | Unknown -> "Unknown"
 
   let many l = Many l
 
+  let field f =
+   fun r ->
+    r
+    |> Result.map_error @@ function
+       | BadValue v -> BadField (f, v)
+       | BadField _ as v -> v
+       | _ -> Unknown
+
   let rec flatten l =
     List.map (fun l -> match l with Many l -> flatten l | e -> [ e ]) l
     |> List.flatten
 end
 
-let map_err e = Result.map_error List.singleton e
-let ( let+ ) r f = Result.map f r
+module Decode = struct
+  open Error
 
-let ( and+ ) a b =
-  match (a, b) with
-  | Ok a, Ok b -> Ok (a, b)
-  | Ok _, Error e | Error e, Ok _ -> Error e
-  | Error e, Error f -> Error (e @ f)
+  let ( @ ) e f =
+    match (e, f) with
+    | Many a, Many b -> Many (a @ b)
+    | Many a, b | b, Many a -> Many (b :: a)
+    | a, b -> Many [ a; b ]
+
+  let ( let+ ) r f = Result.map f r
+
+  let ( and+ ) a b =
+    match (a, b) with
+    | Ok a, Ok b -> Ok (a, b)
+    | Ok _, Error e | Error e, Ok _ -> Error e
+    | Error e, Error f -> Error (e @ f)
+
+  let field_result field r f = Result.bind r f |> Error.field field
+end
 
 module Fields = struct
   open Error
@@ -68,11 +87,11 @@ module Listing = struct
     | (name, n) :: tail when name = field.off -> (
         match int_of_string_opt n with
         | Some n -> args_decode { default with off = n } tail
-        | None -> Error (BadValue (name, n)))
+        | None -> Error (BadField (name, n)))
     | (name, n) :: tail when name = field.lim -> (
         match int_of_string_opt n with
         | Some n -> args_decode { default with lim = n } tail
-        | None -> Error (BadValue (name, n)))
+        | None -> Error (BadField (name, n)))
     | [] -> Ok default
     | kv :: tail -> Error (BadField kv)
 end

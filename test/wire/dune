@@ -1,0 +1,3 @@
+(test
+ (name strings)
+ (libraries rsvp))

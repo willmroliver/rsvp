@@ -13,7 +13,7 @@ module Users = struct
     | (name, id) :: _ when name = field_id ->
         int_of_string_opt id
         |> Option.map (fun id -> User.UserID id)
-        |> Option.to_result ~none:(BadValue (name, id))
+        |> Option.to_result ~none:(BadField (name, id))
     | kv :: tail -> Error (BadField kv)
     | [] -> Error (MissingRequired field_id)
 

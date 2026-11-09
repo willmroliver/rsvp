@@ -1,5 +1,6 @@
-open Domain
-open Wire.Strings.Rsvp
+open Domain.Rsvp
+open Domain.Requirement
+open Wire.Strings
 
 let labels =
   ({
@@ -11,51 +12,56 @@ let labels =
      dietary = "Dietary requirements";
      plus_one = "Plus one?";
    }
-    : string Rsvp.dict)
+    : string dict)
 
-let fields = Rsvp.zip labels fields
+let fields = zip labels Rsvp.fields
 
 let status_to_display = function
-  | Rsvp.Coming -> "Coming!"
-  | Rsvp.MaybeComing -> "Might make it"
-  | Rsvp.NotComing -> "Won't be there :("
+  | Coming -> "Coming!"
+  | MaybeComing -> "Might make it"
+  | NotComing -> "Won't be there :("
 
 let status_opts =
-  Rsvp.fold_status
-    (fun v acc -> (status_to_display v, status_encode v) :: acc)
+  fold_status
+    (fun v acc -> (status_to_display v, Rsvp.status_encode v) :: acc)
     []
 
 let transport_to_display = function
-  | Requirement.NoTransport -> "None"
-  | Requirement.Arriving -> "Arriving"
-  | Requirement.Leaving -> "Leaving"
-  | Requirement.BothWays -> "Both"
+  | NoTransport -> "None"
+  | Arriving -> "Arriving"
+  | Leaving -> "Leaving"
+  | BothWays -> "Both"
 
 let transport_opts =
-  Requirement.fold_transport
-    (fun v acc -> (transport_to_display v, transport_encode v) :: acc)
+  fold_transport
+    (fun v acc ->
+      (transport_to_display v, Wire.Strings.Requirement.transport_encode v)
+      :: acc)
     []
 
 let dietary_to_display = function
-  | Requirement.NoDietary -> "None"
-  | Requirement.Vegetarian -> "Vegetarian"
-  | Requirement.Vegan -> "Vegan"
-  | Requirement.Pescatarian -> "Pescatarian"
-  | Requirement.Allergies _ -> "Allergies"
+  | NoDietary -> "None"
+  | Vegetarian -> "Vegetarian"
+  | Vegan -> "Vegan"
+  | Pescatarian -> "Pescatarian"
+  | Allergies _ -> "Allergies"
 
 let dietary_opts =
-  Requirement.fold_dietary
-    (fun v acc -> (dietary_to_display v, dietary_encode v) :: acc)
+  fold_dietary
+    (fun v acc ->
+      (dietary_to_display v, Wire.Strings.Requirement.dietary_encode v) :: acc)
     []
 
-let rsvp_to_display (rsvp : Rsvp.rsvp) =
-  ({
-     user_id = string_of_int @@ Rsvp.id_to_int rsvp.user_id;
+let rsvp_to_display (rsvp : rsvp) =
+  (let open Wire.Strings in
+   {
+     user_id = string_of_int @@ id_to_int rsvp.user_id;
      status = status_to_display rsvp.status;
-     arriving_from = city_encode rsvp.arriving_from;
-     returning_to = city_encode rsvp.returning_to;
+     arriving_from =
+       Basic.option_encode Wire.Strings.Location.city_encode rsvp.arriving_from;
+     returning_to = Basic.option_encode Location.city_encode rsvp.returning_to;
      transport = transport_to_display rsvp.transport;
      dietary = dietary_to_display rsvp.dietary;
-     plus_one = Option.fold ~none:"" ~some:Proof.Strings.to_string rsvp.plus_one;
+     plus_one = Basic.option_encode Proof.Strings.to_string rsvp.plus_one;
    }
-    : string Rsvp.dict)
+    : string dict)

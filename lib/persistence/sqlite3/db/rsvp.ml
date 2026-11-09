@@ -40,37 +40,32 @@ let rsvp_decode
       ) ) =
   let open Wire.Strings in
   let open Common in
+  let open Error in
   let open Rsvp in
   let open Proof.Strings in
-  (let+ status = status_decode status |> map_err
-   and+ arriving_from =
-     arriving_from
-     |> Option.fold ~none:(Ok None) ~some:(fun v ->
-         city_decode v |> Result.map Option.some)
-     |> map_err
-   and+ returning_to =
-     returning_to
-     |> Option.fold ~none:(Ok None) ~some:(fun v ->
-         city_decode v |> Result.map Option.some)
-     |> map_err
-   and+ transport = transport_decode transport |> map_err
-   and+ dietary = dietary_decode dietary |> map_err
-   and+ plus_one =
-     plus_one
-     |> Option.fold ~none:(Ok None) ~some:(fun v ->
-         v |> of_string |> non_empty |> Result.ok)
-     |> map_err
-   in
-   {
-     user_id = Domain.User.UserID user_id;
-     status;
-     arriving_from;
-     returning_to;
-     transport;
-     dietary;
-     plus_one;
-   })
-  |> Result.map_error (fun v -> v |> Error.many |> Error.to_string)
+  Decode.(
+    let+ status = status_decode status
+    and+ arriving_from =
+      arriving_from |> Basic.option_decode @@ Location.city_decode
+    and+ returning_to =
+      returning_to |> Basic.option_decode @@ Location.city_decode
+    and+ transport = Requirement.transport_decode transport
+    and+ dietary = Requirement.dietary_decode dietary
+    and+ plus_one =
+      plus_one
+      |> Option.fold ~none:(Ok None) ~some:(fun v ->
+          v |> of_string |> non_empty |> Result.ok)
+    in
+    {
+      user_id = Domain.User.UserID user_id;
+      status;
+      arriving_from;
+      returning_to;
+      transport;
+      dietary;
+      plus_one;
+    })
+  |> Result.map_error Error.to_string
 
 let user_rsvp_decode (user_id, (first_name, (last_name, rsvp))) =
   match
@@ -86,6 +81,7 @@ module Repo = struct
 
   let insert ~(db : db) (rsvp : rsvp) =
     let open Wire.Strings.Rsvp in
+    let open Wire.Strings.Requirement in
     Query.insert ~table
       ~values:
         Expr.
@@ -147,6 +143,7 @@ module Repo = struct
 
   let update ~(db : db) (rsvp : rsvp) =
     let open Wire.Strings.Rsvp in
+    let open Wire.Strings.Requirement in
     Query.update ~table
       ~set:
         Expr.
