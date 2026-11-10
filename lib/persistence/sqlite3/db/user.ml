@@ -32,10 +32,8 @@ let user_decode (id, (first_name, (last_name, (email, (mobile, ()))))) =
     let+ id = Ok (User.UserID id)
     and+ first_name = Ok first_name
     and+ last_name = Ok last_name
-    and+ email = email |> option_decode @@ Wire.Strings.Contact.email_decode
-    and+ mobile =
-      mobile |> option_decode @@ Wire.Strings.Contact.mobile_decode
-    in
+    and+ email = email_codec.decode @@ Option.value ~default:"" email
+    and+ mobile = mobile_codec.decode @@ Option.value ~default:"" mobile in
     ({ id; first_name; last_name; email; mobile; address_id = None }
       : User.user))
   |> Result.map_error Error.to_string

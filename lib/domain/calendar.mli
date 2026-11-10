@@ -42,7 +42,7 @@ val make_datetime :
 
 val datetime_of_date : ?hour:int -> ?minute:int -> date -> datetime
 
-type compare_result = private LT | Eq | GT
+type compare_result = LT | Eq | GT
 
 val compare_result_of_int : int -> compare_result
 val compare : datetime -> datetime -> compare_result

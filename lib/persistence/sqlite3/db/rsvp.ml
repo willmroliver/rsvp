@@ -44,18 +44,12 @@ let rsvp_decode
   let open Rsvp in
   let open Proof.Strings in
   Decode.(
-    let+ status = status_decode status
-    and+ arriving_from =
-      arriving_from |> Basic.option_decode @@ Location.city_decode
-    and+ returning_to =
-      returning_to |> Basic.option_decode @@ Location.city_decode
-    and+ transport = Requirement.transport_decode transport
-    and+ dietary = Requirement.dietary_decode dietary
-    and+ plus_one =
-      plus_one
-      |> Option.fold ~none:(Ok None) ~some:(fun v ->
-          v |> of_string |> non_empty |> Result.ok)
-    in
+    let+ status = status_codec.decode status
+    and+ arriving_from = city_codec.decode arriving_from
+    and+ returning_to = city_codec.decode returning_to
+    and+ transport = Requirement.transport_codec.decode transport
+    and+ dietary = Requirement.dietary_codec.decode dietary
+    and+ plus_one = plus_one_codec.decode plus_one in
     {
       user_id = Domain.User.UserID user_id;
       status;
@@ -87,7 +81,7 @@ module Repo = struct
         Expr.
           [
             user_id := i @@ id_to_int rsvp.user_id;
-            status := s @@ status_encode rsvp.status;
+            status := s @@ status_codec.encode rsvp.status;
             Option.fold ~none:(unset arriving_from)
               ~some:(fun v ->
                 match v with
@@ -100,8 +94,8 @@ module Repo = struct
                 | Domain.Location.City v ->
                     returning_to := s @@ Proof.Strings.to_string v)
               rsvp.returning_to;
-            transport := s @@ transport_encode rsvp.transport;
-            dietary := s @@ dietary_encode rsvp.dietary;
+            transport := s @@ transport_codec.encode rsvp.transport;
+            dietary := s @@ dietary_codec.encode rsvp.dietary;
             Option.fold ~none:(unset plus_one)
               ~some:(fun v -> plus_one := s @@ Proof.Strings.to_string v)
               rsvp.plus_one;
@@ -119,11 +113,11 @@ module Repo = struct
         fname_ref;
         lname_ref;
         status;
-        Expr.nullable arriving_from;
-        Expr.nullable returning_to;
+        arriving_from;
+        returning_to;
         transport;
         dietary;
-        Expr.nullable plus_one;
+        plus_one;
       ]
       ~from:table
     |> Query.join
@@ -148,7 +142,7 @@ module Repo = struct
       ~set:
         Expr.
           [
-            status := s @@ status_encode rsvp.status;
+            status := s @@ status_codec.encode rsvp.status;
             Option.fold ~none:(unset arriving_from)
               ~some:(function
                 | Domain.Location.City v ->
@@ -159,8 +153,8 @@ module Repo = struct
                 | Domain.Location.City v ->
                     returning_to := s @@ Proof.Strings.to_string v)
               rsvp.returning_to;
-            transport := s @@ transport_encode rsvp.transport;
-            dietary := s @@ dietary_encode rsvp.dietary;
+            transport := s @@ transport_codec.encode rsvp.transport;
+            dietary := s @@ dietary_codec.encode rsvp.dietary;
             Option.fold ~none:(unset plus_one)
               ~some:(fun v -> plus_one := s @@ Proof.Strings.to_string v)
               rsvp.plus_one;

@@ -23,7 +23,7 @@ let status_to_display = function
 
 let status_opts =
   fold_status
-    (fun v acc -> (status_to_display v, Rsvp.status_encode v) :: acc)
+    (fun v acc -> (status_to_display v, Rsvp.status_codec.encode v) :: acc)
     []
 
 let transport_to_display = function
@@ -35,8 +35,7 @@ let transport_to_display = function
 let transport_opts =
   fold_transport
     (fun v acc ->
-      (transport_to_display v, Wire.Strings.Requirement.transport_encode v)
-      :: acc)
+      (transport_to_display v, Requirement.transport_codec.encode v) :: acc)
     []
 
 let dietary_to_display = function
@@ -49,7 +48,7 @@ let dietary_to_display = function
 let dietary_opts =
   fold_dietary
     (fun v acc ->
-      (dietary_to_display v, Wire.Strings.Requirement.dietary_encode v) :: acc)
+      (dietary_to_display v, Requirement.dietary_codec.encode v) :: acc)
     []
 
 let rsvp_to_display (rsvp : rsvp) =
@@ -57,11 +56,10 @@ let rsvp_to_display (rsvp : rsvp) =
    {
      user_id = string_of_int @@ id_to_int rsvp.user_id;
      status = status_to_display rsvp.status;
-     arriving_from =
-       Basic.option_encode Wire.Strings.Location.city_encode rsvp.arriving_from;
-     returning_to = Basic.option_encode Location.city_encode rsvp.returning_to;
+     arriving_from = Rsvp.city_codec.encode rsvp.arriving_from;
+     returning_to = Rsvp.city_codec.encode rsvp.returning_to;
      transport = transport_to_display rsvp.transport;
      dietary = dietary_to_display rsvp.dietary;
-     plus_one = Basic.option_encode Proof.Strings.to_string rsvp.plus_one;
+     plus_one = Rsvp.plus_one_codec.encode rsvp.plus_one;
    }
     : string dict)
