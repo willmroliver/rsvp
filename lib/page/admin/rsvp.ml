@@ -7,39 +7,39 @@ open Css
 open Components
 open Forms
 
-let rsvp_to_row full_name (rsvp : (string * string) Rsvp.dict) =
-  Rsvp.fold
-    (fun (l, v) acc ->
-      td
-        [
-          flex ~dir:Row
-            ~style:[ ("text-wrap", "nowrap"); gap @@ var "gap-sm" ]
-            ([ txt v ]
-            @
-            if l = labels.user_id then
-              [
-                link
-                  ~path:("/admin/users/" ^ snd rsvp.user_id)
+let encode = Wire.Strings.Rsvp.Model.field_encode
+
+let rsvp_to_row full_name rsvp =
+  List.map
+    (function
+      | Rsvp.Any f ->
+          td
+            [
+              flex ~dir:Row
+                ~style:[ ("text-wrap", "nowrap"); gap @@ var "gap-sm" ]
+                ([ txt @@ rsvp_to_display rsvp f ]
+                @
+                if labels f = labels UserID then
                   [
-                    button
-                      ~a:[ a_class [ "accent" ] ]
-                      [ icon ~size:"xs" "eye-outline" ];
-                  ];
-              ]
-            else []);
-        ]
-      :: acc)
-    []
-    { rsvp with user_id = (fst rsvp.user_id, full_name) }
+                    link
+                      ~path:("/admin/users/" ^ encode rsvp UserID)
+                      [
+                        button
+                          ~a:[ a_class [ "accent" ] ]
+                          [ icon ~size:"xs" "eye-outline" ];
+                      ];
+                  ]
+                else []);
+            ])
+    Rsvp.all
 
 let list ctx { n; rsvps } =
   let each =
    fun ((user : User.user), rsvp) ->
-    rsvp_to_display rsvp |> Rsvp.zip labels
-    |> rsvp_to_row (user.first_name ^ " " ^ user.last_name)
+    rsvp_to_row (user.first_name ^ " " ^ user.last_name) rsvp
   in
 
   table ~style:(Css.glass "surface")
-    ~headers:(Rsvp.fold (fun v acc -> v :: acc) [] labels)
+    ~headers:(List.map (function Rsvp.Any f -> labels f) Rsvp.all)
     ~each rsvps
   |> Index.index ~width:"100%" ctx

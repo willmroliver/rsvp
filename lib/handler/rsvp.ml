@@ -17,7 +17,9 @@ module Get = struct
 end
 
 module Post = struct
-  let post_request data = data |> Wire.Strings.Rsvp.decode |> map_wire_error
+  let post_request data =
+    data |> Wire.Strings.Rsvp.codec.decode |> map_wire_error
+
   let post_handler svc ctx data = svc ctx data |> map_core_error
 
   let onerr req err =

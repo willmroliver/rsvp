@@ -3,16 +3,19 @@ open Domain
 open Wire.Strings.Common
 open Common.Model.Rsvp
 
-let inputs : 'a Rsvp.dict =
-  {
-    user_id = (`Hidden, [], "", "");
-    status = (`Select, status_opts, "1", "1/3");
-    arriving_from = (`Text, [], "2", "1");
-    returning_to = (`Text, [], "2", "2");
-    transport = (`Select, transport_opts, "3", "1/3");
-    dietary = (`Select, dietary_opts, "4", "1/3");
-    plus_one = (`Checkbox, [], "5", "1/3");
-  }
+let inputs : type a.
+    a Rsvp.field ->
+    [> `Hidden | `Select | `Text | `Checkbox ]
+    * (string * string) list
+    * string
+    * string = function
+  | Rsvp.UserID -> (`Hidden, [], "", "")
+  | Rsvp.Status -> (`Select, status_opts, "1", "1/3")
+  | Rsvp.ArrivingFrom -> (`Text, [], "2", "1")
+  | Rsvp.ReturningTo -> (`Text, [], "2", "2")
+  | Rsvp.Transport -> (`Select, transport_opts, "3", "1/3")
+  | Rsvp.Dietary -> (`Select, dietary_opts, "4", "1/3")
+  | Rsvp.PlusOne -> (`Checkbox, [], "5", "1/3")
 
 let city_to_display =
   Option.fold ~none:"" ~some:(fun c ->
@@ -65,20 +68,13 @@ let with_err name (res : (Rsvp.rsvp option, Error.t option) result) =
 
 let get (ctx : Common.Context.t)
     (res : (Rsvp.rsvp option, Error.t option) result) =
-  let rsvp =
+  let encode : type a. a Rsvp.field -> string =
     match res with
-    | Ok (Some rsvp) -> Wire.Strings.Rsvp.encode rsvp |> Rsvp.map snd
-    | _ ->
-        ({
-           user_id = "";
-           status = "";
-           arriving_from = "";
-           returning_to = "";
-           transport = "";
-           dietary = "";
-           plus_one = "";
-         }
-          : string Rsvp.dict)
+    | Ok (Some rsvp) -> fun f -> Wire.Strings.Rsvp.Model.field_encode rsvp f
+    | _ -> ( function _ -> "")
+  in
+  let field : type a. a Rsvp.field -> string =
+    Wire.Strings.Rsvp.Model.field_name
   in
 
   Index.index ctx
@@ -94,64 +90,71 @@ let get (ctx : Common.Context.t)
              ];
          ]
   @@ [
-       Rsvp.fold
-         (fun (v, ((label, name), (kind, opts, row, col))) acc ->
-           cel ~row ~col
-             [
-               (match kind with
-               | `Select ->
-                   Forms.radio ~title:label
-                     ~a:[ style @@ with_err name res ]
-                     ~checked:v name
-                     (List.map
-                        (fun (name, value) -> ({ name; value } : Forms.selopt))
-                        opts)
-               | (`Text | `Number) as kind ->
-                   Forms.field ~title:label
-                     ~a_input:
-                       [
-                         (let open Wire.Strings.Rsvp in
-                          a_placeholder
-                          @@
-                          match name with
-                          | name
-                            when name = fields.arriving_from
-                                 || name = fields.returning_to ->
-                              "E.g. \"London\", \"Milano\""
-                          | _ -> "");
-                         style @@ with_err name res;
-                         a_value v;
-                       ]
-                     name kind
-               | `Checkbox ->
-                   flex ~dir:Row
-                     ~a:[ a_class Toggle.container_cl ]
-                     ~style:
-                       [ ("align-items", "end"); Css.gap @@ Css.var "gap-sm" ]
-                     [
-                       Forms.checkbox
-                         ~a:
-                           (Toggle.ctrl ()
-                           @ [ Css.style [ ("flex-grow", "1") ] ])
-                         ~checked:(v <> "") ~title:label "";
-                       Forms.field
-                         ~a:
-                           [
-                             a_class Toggle.on_cl;
-                             Css.style [ ("flex-grow", "1") ];
-                           ]
+       List.map
+         (function
+           | Rsvp.Any f ->
+               let kind, opts, row, col = inputs f in
+               let label = labels f in
+               let name = field f in
+               let v = encode f in
+               cel ~row ~col
+                 [
+                   (match kind with
+                   | `Select ->
+                       Forms.radio ~title:label
+                         ~a:[ style @@ with_err name res ]
+                         ~checked:v name
+                         (List.map
+                            (fun (name, value) ->
+                              ({ name; value } : Forms.selopt))
+                            opts)
+                   | (`Text | `Number) as kind ->
+                       Forms.field ~title:label
                          ~a_input:
                            [
-                             a_placeholder "Tell us who you'd like to bring";
+                             (let open Wire.Strings.Rsvp in
+                              a_placeholder
+                              @@
+                              match name with
+                              | name
+                                when name = field ArrivingFrom
+                                     || name = field ReturningTo ->
+                                  "E.g. \"London\", \"Milano\""
+                              | _ -> "");
+                             style @@ with_err name res;
                              a_value v;
                            ]
-                         name `Text;
-                     ]
-               | `Hidden -> Forms.field ~a_input:[ a_value "1" ] name `Hidden);
-             ]
-           :: acc)
-         []
-         (Rsvp.zip fields inputs |> Rsvp.zip rsvp)
+                         name kind
+                   | `Checkbox ->
+                       flex ~dir:Row
+                         ~a:[ a_class Toggle.container_cl ]
+                         ~style:
+                           [
+                             ("align-items", "end"); Css.gap @@ Css.var "gap-sm";
+                           ]
+                         [
+                           Forms.checkbox
+                             ~a:
+                               (Toggle.ctrl ()
+                               @ [ Css.style [ ("flex-grow", "1") ] ])
+                             ~checked:(v <> "") ~title:label "";
+                           Forms.field
+                             ~a:
+                               [
+                                 a_class Toggle.on_cl;
+                                 Css.style [ ("flex-grow", "1") ];
+                               ]
+                             ~a_input:
+                               [
+                                 a_placeholder "Tell us who you'd like to bring";
+                                 a_value v;
+                               ]
+                             name `Text;
+                         ]
+                   | `Hidden ->
+                       Forms.field ~a_input:[ a_value "1" ] name `Hidden);
+                 ])
+         Rsvp.all
        |> grid ~cols:"auto" ~style:[ gap @@ var "gap-xl" ];
      ]
   @ [ Common.Action.field ~kind:Create () ]

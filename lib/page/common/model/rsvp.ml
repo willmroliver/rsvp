@@ -2,19 +2,14 @@ open Domain.Rsvp
 open Domain.Requirement
 open Wire.Strings
 
-let labels =
-  ({
-     user_id = "User";
-     status = "Are you free?";
-     arriving_from = "Arriving from";
-     returning_to = "Returning to";
-     transport = "Transport help needed?";
-     dietary = "Dietary requirements";
-     plus_one = "Plus one?";
-   }
-    : string dict)
-
-let fields = zip labels Rsvp.fields
+let labels : type a. a field -> string = function
+  | UserID -> "User"
+  | Status -> "Are you free?"
+  | ArrivingFrom -> "Arriving from"
+  | ReturningTo -> "Returning to"
+  | Transport -> "Transport help needed?"
+  | Dietary -> "Dietary requirements"
+  | PlusOne -> "Plus one?"
 
 let status_to_display = function
   | Coming -> "Coming!"
@@ -51,15 +46,14 @@ let dietary_opts =
       (dietary_to_display v, Requirement.dietary_codec.encode v) :: acc)
     []
 
-let rsvp_to_display (rsvp : rsvp) =
-  (let open Wire.Strings in
-   {
-     user_id = string_of_int @@ id_to_int rsvp.user_id;
-     status = status_to_display rsvp.status;
-     arriving_from = Rsvp.city_codec.encode rsvp.arriving_from;
-     returning_to = Rsvp.city_codec.encode rsvp.returning_to;
-     transport = transport_to_display rsvp.transport;
-     dietary = dietary_to_display rsvp.dietary;
-     plus_one = Rsvp.plus_one_codec.encode rsvp.plus_one;
-   }
-    : string dict)
+let rsvp_to_display : type a. rsvp -> a field -> string =
+ fun rsvp ->
+  let open Wire.Strings in
+  function
+  | UserID -> string_of_int @@ id_to_int rsvp.user_id
+  | Status -> status_to_display rsvp.status
+  | ArrivingFrom -> Rsvp.city_codec.encode rsvp.arriving_from
+  | ReturningTo -> Rsvp.city_codec.encode rsvp.returning_to
+  | Transport -> transport_to_display rsvp.transport
+  | Dietary -> dietary_to_display rsvp.dietary
+  | PlusOne -> Rsvp.plus_one_codec.encode rsvp.plus_one

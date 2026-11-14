@@ -9,7 +9,7 @@ open Css
 open Components
 open Forms
 
-let encode = Wire.Strings.User.field_encode
+let encode = Wire.Strings.User.Model.field_encode
 
 let user_to_row ctx user =
   let id = encode user ID in
@@ -111,7 +111,7 @@ let editor ~(ctx : Context.t) ~kind ~action user =
                       (Forms.form ~action ~csrf:ctx.csrf ~submit:(txt "Save")
                       @@ let open Wire.Strings.User in
                          let field f t k =
-                           (encode user f, field_name f, t, k)
+                           (encode user f, Model.field_name f, t, k)
                          in
                          (List.map (fun (f, v, t, k) ->
                               Forms.field ~a_input:[ a_value v ] ~title:t f k)

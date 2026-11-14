@@ -30,6 +30,6 @@ let codec =
 let partition data =
   List.partition (fun (f, _) -> f = field) data |> fun (l, data) ->
   match (l, data) with
-  | [ v ], data -> (codec.decode v |> Result.map snd, data)
+  | v :: [], data -> (codec.decode v |> Result.map snd, data)
   | [], data -> (Error (MissingRequired field), data)
   | l, data -> (Error (DuplicateField field), data)
