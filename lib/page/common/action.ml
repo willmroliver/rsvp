@@ -7,6 +7,6 @@ let field ~kind () =
       [
         a_input_type `Hidden;
         a_name Action.field;
-        a_value @@ Action.kind_encode kind;
+        a_value @@ Action.kind_codec.encode kind;
       ]
     ()

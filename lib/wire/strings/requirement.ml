@@ -3,7 +3,7 @@ open Common
 open Error
 
 let transport_codec =
-  Codec.
+  Tool.Codec.
     {
       encode =
         (function
@@ -21,7 +21,7 @@ let transport_codec =
     }
 
 let dietary_codec =
-  Codec.
+  Tool.Codec.
     {
       encode =
         (function

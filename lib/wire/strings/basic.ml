@@ -1,8 +1,10 @@
 open Common
-open Codec
 open Error
+open Tool.Codec
 
-let maybe_encode f o = Option.fold ~none:"" ~some:f o
-
-let maybe_decode f v =
-  Option.fold ~none:(Ok None) ~some:(fun v -> f v |> Result.map Option.some) v
+let int_codec =
+  {
+    encode = string_of_int;
+    decode =
+      (fun v -> int_of_string_opt v |> Option.to_result ~none:(BadValue v));
+  }

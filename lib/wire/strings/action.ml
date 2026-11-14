@@ -1,34 +1,35 @@
 open Core.Common.Action
 open Common.Error
+open Tool
 
 let field = "action"
 
-let kind_decode = function
-  | "create" -> Ok Create
-  | "read" -> Ok Read
-  | "update" -> Ok Update
-  | "delete" -> Ok Delete
-  | v -> Error (BadField (field, v))
+let kind_codec =
+  Codec.
+    {
+      encode =
+        (function
+        | Create -> "create"
+        | Read -> "read"
+        | Update -> "update"
+        | Delete -> "delete");
+      decode =
+        (function
+        | "create" -> Ok Create
+        | "read" -> Ok Read
+        | "update" -> Ok Update
+        | "delete" -> Ok Delete
+        | v -> Error (BadField (field, v)));
+    }
 
-let kind_encode = function
-  | Create -> "create"
-  | Read -> "read"
-  | Update -> "update"
-  | Delete -> "delete"
+let codec =
+  Codec.product
+    (Codec.const Codec.identity field (fun v -> BadField (field, v)))
+    kind_codec
 
-let encode k = [ (field, kind_encode k) ]
-
-let decode ?kind = function
-  | [ (f, k) ] when f = field ->
-      Option.fold ~none:(kind_decode k)
-        ~some:(fun v ->
-          if kind_encode v = k then Ok v else Error (BadField (f, k)))
-        kind
-  | kv :: l -> Error (BadField kv)
-  | [] -> Error (MissingRequired field)
-
-let partition ?kind (fields : (string * string) list) =
-  let a, fields = List.partition (fun (f, _) -> f = field) fields in
-  match kind with
-  | Some kind -> (decode ~kind a, fields)
-  | None -> (decode a, fields)
+let partition data =
+  List.partition (fun (f, _) -> f = field) data |> fun (l, data) ->
+  match (l, data) with
+  | [ v ], data -> (codec.decode v |> Result.map snd, data)
+  | [], data -> (Error (MissingRequired field), data)
+  | l, data -> (Error (DuplicateField field), data)

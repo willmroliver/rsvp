@@ -1,7 +1,7 @@
-open Codec
 open Common
 open Error
 open Domain.Calendar
+open Tool.Codec
 
 let codec =
   {

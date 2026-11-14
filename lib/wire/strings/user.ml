@@ -1,54 +1,59 @@
 open Domain.User
 open Common
+open Tool
 
-let field =
-  ({
-     id = "id";
-     first_name = "first_name";
-     last_name = "last_name";
-     email = "email";
-     mobile = "mobile";
-     address_id = "address_id";
-   }
-    : string dict)
-
-let id_codec = Codec.map id_to_int (fun v -> UserID v) Codec.ints
+let id_codec = Codec.map id_to_int (fun v -> UserID v) Basic.int_codec
 let email_codec = Codec.maybe ~none:"" Contact.email_codec
 let mobile_codec = Codec.maybe ~none:"" Contact.mobile_codec
 let address_codec = Codec.maybe ~none:"" Location.id_codec
 
-let decode data =
-  let open Fields in
-  let id, data = one data field.id in
-  let first_name, data = one data field.first_name in
-  let last_name, data = one data field.last_name in
-  let email, data = one data field.email in
-  let mobile, data = one data field.mobile in
-  let address_id, data = one data field.address_id in
+let field_name : type a. a field -> string = function
+  | ID -> "id"
+  | FirstName -> "first_name"
+  | LastName -> "last_name"
+  | Email -> "email"
+  | Mobile -> "mobile"
+  | AddressID -> "address_id"
 
-  Decode.(
-    let+ _ =
-      match data with
-      | [] -> Ok ()
-      | _ -> Error (List.map (fun v -> Error.BadField v) data |> Error.many)
-    and+ id = Decode.field_result field.id id id_codec.decode
-    and+ first_name = first_name
-    and+ last_name = last_name
-    and+ email = Decode.field_result field.email email email_codec.decode
-    and+ mobile = Decode.field_result field.mobile mobile mobile_codec.decode
-    and+ address_id =
-      Decode.field_result field.address_id address_id address_codec.decode
-    in
-    { id; first_name; last_name; email; mobile; address_id })
+let field_codec : type a. a field -> (a, string, Error.t) Codec.t = function
+  | ID -> id_codec
+  | FirstName -> Codec.identity
+  | LastName -> Codec.identity
+  | Email -> email_codec
+  | Mobile -> mobile_codec
+  | AddressID -> address_codec
 
-let encode ({ id; first_name; last_name; email; mobile; address_id } : user) =
-  zip field
-    ({
-       id = id_codec.encode id;
-       first_name;
-       last_name;
-       email = email_codec.encode email;
-       mobile = mobile_codec.encode mobile;
-       address_id = address_codec.encode address_id;
-     }
-      : string dict)
+let field_encode user f = (field_codec f).encode @@ get user f
+
+let field_decode : type a.
+    (string * string) list -> a field -> (a, Error.t) result =
+ fun data f ->
+  let name = field_name f in
+  List.filter_map (fun (k, v) -> if k = name then Some v else None) data
+  |> function
+  | el :: [] -> (field_codec f).decode el
+  | [] -> Error (MissingRequired name)
+  | _ :: l -> Error (DuplicateField name)
+
+let codec =
+  Codec.
+    {
+      encode =
+        (fun user ->
+          List.map (function Any f -> (field_name f, field_encode user f)) all);
+      decode =
+        (fun data ->
+          Decode.(
+            let+ _ =
+              match data with
+              | [] -> Ok ()
+              | _ ->
+                  Error (List.map (fun v -> Error.BadField v) data |> Error.many)
+            and+ id = field_decode data ID
+            and+ first_name = field_decode data FirstName
+            and+ last_name = field_decode data LastName
+            and+ email = field_decode data Email
+            and+ mobile = field_decode data Mobile
+            and+ address_id = field_decode data AddressID in
+            { id; first_name; last_name; email; mobile; address_id }));
+    }

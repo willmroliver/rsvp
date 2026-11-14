@@ -25,7 +25,6 @@ let table, Expr.[ id; first_name; last_name; email; mobile; address_id ] =
 
 let user_decode (id, (first_name, (last_name, (email, (mobile, ()))))) =
   let open Wire.Strings.Common in
-  let open Wire.Strings.Basic in
   let open Wire.Strings.User in
   let open Error in
   Decode.(

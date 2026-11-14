@@ -1,7 +1,7 @@
 open Domain.Contact
 open Common
-open Codec
 open Error
+open Tool.Codec
 
 let email_codec =
   {

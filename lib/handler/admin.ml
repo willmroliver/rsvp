@@ -19,7 +19,7 @@ module Users = struct
       @@ Out.html Page.Admin.Users.list
 
     let get_request params =
-      Wire.Strings.Admin.Users.get_decode params |> map_wire_error
+      Wire.Strings.Admin.Users.get_codec.decode params |> map_wire_error
 
     let get_handler ctx data = Service.get ctx data |> map_core_error
 
@@ -42,7 +42,7 @@ module Users = struct
       | Create ->
           Option.some
           @@ In.pipe
-               (post_request Wire.Strings.User.decode)
+               (post_request Wire.Strings.User.codec.decode)
                (post_handler Service.create)
           @@ Out.redirect ~target:"/admin/users" Page.Admin.Users.list
       | _ -> None
@@ -54,13 +54,13 @@ module Users = struct
       | Update ->
           Option.some
           @@ In.pipe
-               (post_request Wire.Strings.User.decode)
+               (post_request Wire.Strings.User.codec.decode)
                (post_handler Service.update)
           @@ Out.redirect Page.Admin.Users.edit
       | Delete ->
           Option.some
           @@ In.pipe
-               (post_request Wire.Strings.Admin.Users.get_decode)
+               (post_request Wire.Strings.Admin.Users.delete_codec.decode)
                (post_handler Service.delete)
           @@ Out.redirect ~target:"/admin/users" Page.Admin.Users.list
       | _ -> None

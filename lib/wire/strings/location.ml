@@ -2,10 +2,10 @@ open Domain.Location
 open Common
 open Error
 
-let id_codec = Codec.map id_to_int (fun v -> AddressID v) Codec.ints
+let id_codec = Tool.Codec.map id_to_int (fun v -> AddressID v) Basic.int_codec
 
 let city_codec =
-  Codec.
+  Tool.Codec.
     {
       encode = (fun v -> match v with City v -> v |> Proof.Strings.to_string);
       decode =

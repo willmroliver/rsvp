@@ -9,21 +9,27 @@ open Css
 open Components
 open Forms
 
-let user_to_row ctx (user : string User.dict) =
+let encode = Wire.Strings.User.field_encode
+
+let user_to_row ctx user =
+  let id = encode user ID in
+  let first_name = encode user FirstName in
+  let last_name = encode user LastName in
+  let email = encode user Email in
+  let mobile = encode user Mobile in
   [
-    td [ txt user.id ];
-    td [ txt user.first_name ];
-    td [ txt user.last_name ];
-    td [ txt user.email ];
-    td [ txt user.mobile ];
+    td [ txt id ];
+    td [ txt first_name ];
+    td [ txt last_name ];
+    td [ txt email ];
+    td [ txt mobile ];
     td
       ~a:[ style [ ("text-align", "right") ] ]
       [
         flex ~dir:Row
           ~style:[ gap @@ var "gap-sm" ]
           [
-            link
-              ~path:(Context.path ctx [ user.id ])
+            link ~path:(Context.path ctx [ id ])
               [ button [ icon "eye-outline" ] ];
             event
               ~submit:
@@ -32,17 +38,14 @@ let user_to_row ctx (user : string User.dict) =
                     ~a:[ a_class [ "danger" ] ]
                     [ icon "trash-can-outline" ];
                 ]
-              ~action:(Context.path ctx [ user.id ])
-              ~csrf:ctx.csrf
-            @@ Wire.Strings.Action.encode Delete;
+              ~action:(Context.path ctx [ id ]) ~csrf:ctx.csrf
+              [ Wire.Strings.Action.codec.encode ((), Delete) ];
           ];
       ];
   ]
 
 let list ctx { n; users } =
-  let each =
-   fun user -> Wire.Strings.User.encode user |> User.map snd |> user_to_row ctx
-  in
+  let each = user_to_row ctx in
   Index.index ctx
     (table ~pin_last:true
        ~style:[ ("background", Css.alpha ~alpha:".8" "surface") ]
@@ -51,7 +54,10 @@ let list ctx { n; users } =
        ~each users)
 
 let editor ~(ctx : Context.t) ~kind ~action user =
-  let user = Wire.Strings.User.encode user in
+  let first_name = encode user FirstName in
+  let last_name = encode user LastName in
+  let email = encode user Email in
+  let mobile = encode user Mobile in
 
   let open Css in
   let style =
@@ -98,32 +104,28 @@ let editor ~(ctx : Context.t) ~kind ~action user =
                       txt "Mobile";
                     ]
                @ col ~col:"2" ~style
-                   [
-                     txt @@ snd user.first_name;
-                     txt @@ snd user.last_name;
-                     txt @@ snd user.email;
-                     txt @@ snd user.mobile;
-                   ];
+                   [ txt first_name; txt last_name; txt email; txt mobile ];
                Toggle.on
                @@ col ~col:"1"
                     [
                       (Forms.form ~action ~csrf:ctx.csrf ~submit:(txt "Save")
                       @@ let open Wire.Strings.User in
+                         let field f t k =
+                           (encode user f, field_name f, t, k)
+                         in
                          (List.map (fun (f, v, t, k) ->
                               Forms.field ~a_input:[ a_value v ] ~title:t f k)
-                         @@ User.fold
-                              (fun u l ->
-                                match u with
-                                | f, v when f = field.first_name ->
-                                    (f, v, "First Name", `Text) :: l
-                                | f, v when f = field.last_name ->
-                                    (f, v, "Last Name", `Text) :: l
-                                | f, v when f = field.email ->
-                                    (f, v, "Email", `Email) :: l
-                                | f, v when f = field.mobile ->
-                                    (f, v, "Mobile", `Tel) :: l
-                                | _ -> l)
-                              [] user)
+                         @@ List.filter_map
+                              (function
+                                | Any FirstName ->
+                                    Some (field FirstName "First Name" `Text)
+                                | Any LastName ->
+                                    Some (field LastName "Last Name" `Text)
+                                | Any Email -> Some (field Email "Email" `Email)
+                                | Any Mobile ->
+                                    Some (field Mobile "Mobile" `Tel)
+                                | _ -> None)
+                              all)
                          @ [ Action.field ~kind () ]
                          @
                          match kind with

@@ -16,7 +16,7 @@ let fields : string dict =
   }
 
 let status_codec =
-  Codec.
+  Tool.Codec.
     {
       encode =
         (function
@@ -31,10 +31,10 @@ let status_codec =
         | v -> Error (BadValue v));
     }
 
-let city_codec = Codec.maybe ~none:"" Location.city_codec
+let city_codec = Tool.Codec.maybe ~none:"" Location.city_codec
 
 let plus_one_codec =
-  Codec.
+  Tool.Codec.
     {
       encode = Proof.Strings.to_string;
       decode =
@@ -42,7 +42,7 @@ let plus_one_codec =
           Proof.Strings.of_string v |> Proof.Strings.non_empty
           |> Option.to_result ~none:(BadValue v));
     }
-  |> Codec.maybe ~none:""
+  |> Tool.Codec.maybe ~none:""
 
 let decode data =
   let user_id, data = one data fields.user_id in
